@@ -44,7 +44,7 @@ namespace PowerSeries
 open Polynomial Nat
 
 section CommutativeSemiring
-variable {R : Type u} [CommSemiring R]
+variable {R : Type*} [CommSemiring R]
 
 
 /-- The formal derivative of a power series in one variable.
@@ -59,7 +59,7 @@ by
   rw [D_fun, coeff_mk]
 
 theorem D_fun_coe (f : R[X]) :
-  (f : R⟦X⟧).D_fun = derivative f :=
+  (f : R⟦X⟧).D_fun = f.derivative :=
 by
   ext
   rw [coeff_D_fun, Polynomial.coeff_coe, Polynomial.coeff_coe, Polynomial.coeff_derivative]
@@ -76,6 +76,8 @@ by
   split_ifs with h
   · cases succ_ne_zero n h
   · rw [zero_mul, map_zero]
+  sorry
+  sorry
 
 theorem trunc_D_fun (f : R⟦X⟧) (n : ℕ) :
   (trunc n f.D_fun : R⟦X⟧) = D_fun ↑(trunc (n + 1) f) :=
@@ -102,10 +104,10 @@ theorem D_fun_mul (f g : R⟦X⟧) :
 by
   ext n
   have h₁ : n < n + 1 := lt_succ_self n
-  have h₂ : n < n + 1 + 1 := Nat.lt_add_right _ _ _ h₁
-  rw [coeff_D_fun, map_add, coeff_mul_stable,
-    smul_eq_mul, smul_eq_mul, coeff_mul_stable₂ g f.D_fun h₂ h₁,
-    coeff_mul_stable₂ f g.D_fun h₂ h₁,
+  have h₂ : n < n + 1 + 1 := Nat.lt_add_right _ h₁
+  rw [coeff_D_fun, map_add, coeff_mul_stable _ _ _,
+    smul_eq_mul, smul_eq_mul, coeff_mul_stable₂ _ _ _ g f.D_fun h₂ h₁,
+    coeff_mul_stable₂ _ _ _ f g.D_fun h₂ h₁,
     trunc_D_fun, trunc_D_fun, ←map_add, ←D_fun_coe_mul_coe, coeff_D_fun]
 
 theorem D_fun_one : D_fun (1 : R⟦X⟧) = 0 :=
@@ -118,7 +120,7 @@ by
     D_fun_C, smul_zero, add_zero, smul_eq_mul]
 
 /--The formal derivative of a formal power series.-/
-noncomputable def D (R : Type u) [CommSemiring R]: Derivation R R⟦X⟧ R⟦X⟧
+noncomputable def D (R : Type*) [CommSemiring R]: Derivation R R⟦X⟧ R⟦X⟧
 where
   toFun             := D_fun
   map_add'          := D_fun_add
@@ -127,7 +129,7 @@ where
   leibniz'          := D_fun_mul
 
 /-this can be proved by `simp`.-/
-theorem D_mul : D R (f * g) = f * D R g + g * D R f :=
+theorem D_mul (f g : R⟦X⟧) : D R (f * g) = f * D R g + g * D R f :=
 by
   rw [Derivation.leibniz, smul_eq_mul, smul_eq_mul]
 
@@ -142,7 +144,7 @@ theorem D_C (r : R) : D R (C R r) = 0 :=
 theorem coeff_D (f : R⟦X⟧) (n : ℕ) : coeff R n (D R f) = coeff R (n + 1) f * (n + 1) :=
   coeff_D_fun f n
 
-theorem D_coe (f : R[X]) : D R f = derivative f :=
+theorem D_coe (f : R[X]) : D R f = f.derivative :=
   D_fun_coe f
 
 @[simp]
@@ -156,26 +158,25 @@ by
   · rfl
 
 theorem trunc_D (f : R⟦X⟧) (n : ℕ) :
-  trunc n (D R f) = derivative (trunc (n + 1) f) :=
+  trunc n (D R f) = (trunc (n + 1) f).derivative :=
 by
   apply coe_inj.mp
   rw [←D_coe]
   apply trunc_D_fun
 
 theorem trunc_D' (f : R⟦X⟧) (n : ℕ) :
-  trunc (n-1) (D R f) = derivative (trunc n f) :=
+  trunc (n-1) (D R f) = (trunc n f).derivative :=
 by
   cases n with
   | zero =>
-    simp only [zero_eq, ge_iff_le, tsub_eq_zero_of_le]
-    rfl
+    simp only [zero_tsub, trunc_zero', derivative_zero]
   | succ n =>
     rw [succ_sub_one, trunc_D]
 
 
 
 theorem D_eval₂ (f : R[X]) (g : R⟦X⟧) : D R (f.eval₂ (C R) g)
-  = (derivative f).eval₂ (C R) g * D R g :=
+  = f.derivative.eval₂ (C R) g * D R g :=
   Derivation.polynomial_eval₂ (D R) f g
 
 theorem D_coe_comp (f : R[X]) (g : R⟦X⟧) :
@@ -193,16 +194,16 @@ theorem D_comp (f g : R⟦X⟧) (hf : f.hasComp g) (hDf : (D R f).hasComp g) :
   D R (f ∘ᶠ g) = D R f ∘ᶠ g * D R g :=
 by
   ext n
-  obtain ⟨N₁, hN₁⟩ := uniform_stable_of_hasComp hDf n
+  obtain ⟨N₁, hN₁⟩ := uniform_stable_of_hasComp _ g hDf n
   obtain ⟨N₂, hN₂⟩ := hf (n+1)
   set N := max (N₁ + 1) N₂
-  rw [coeff_D, coeff_comp_of_stable hf (N := N),
+  rw [coeff_D, coeff_comp_of_stable _ _ hf (N := N),
     ←coeff_D, D_coe_comp, coeff_mul, coeff_mul, sum_congr rfl]
   intro _ hxy
   congr 1
   rw [D_coe, ←trunc_D']
   symm
-  apply coeff_comp_of_stable hDf
+  apply coeff_comp_of_stable _ _ hDf
   · intro _ hm
     rw [tsub_le_iff_right] at hm
     apply hN₁
@@ -231,7 +232,7 @@ also cancellation of addition in `R`. For this reason, the next lemma is stated 
 is a `CommRing`.-/
 /-- If `f` and `g` have the same constant term and derivative, then they are equal.-/
 theorem eq_of_D_eq_of_constantCoeff_eq
-  {R : Type u} [CommRing R] [NoZeroSMulDivisors ℕ R]
+  {R : Type*} [CommRing R] [NoZeroSMulDivisors ℕ R]
   {f g : PowerSeries R}
   (hD : D R f = D R g) (hc : constantCoeff R f = constantCoeff R g) :
   f = g :=
@@ -248,7 +249,7 @@ by
 
 
 @[simp]
-theorem D_inv {R : Type u} [CommRing R] (f : R⟦X⟧ˣ) :
+theorem D_inv {R : Type*} [CommRing R] (f : R⟦X⟧ˣ) :
   D R f.inv = -f.inv ^ 2 * D R f :=
 by
   apply Derivation.leibniz_of_mul_eq_one
@@ -256,7 +257,7 @@ by
 
 
 @[simp]
-theorem D_invOf {R : Type u} [CommRing R] (f : R⟦X⟧) [Invertible f] :
+theorem D_invOf {R : Type*} [CommRing R] (f : R⟦X⟧) [Invertible f] :
   D R (⅟ f) = - (⅟ f) ^ 2 * D R f :=
 by
   rw [Derivation.leibniz_invOf, smul_eq_mul]
@@ -269,10 +270,10 @@ instance of `Inv R⟦X⟧` for more general base rings `R`.
 In the more general case, use `D_inv` or `D_invOf` instead.
 -/
 @[simp]
-theorem D_inv' {R : Type u} [Field R] (f : R⟦X⟧) :
+theorem D_inv' {R : Type*} [Field R] (f : R⟦X⟧) :
   D R f⁻¹ = -f⁻¹ ^ 2 * D R f :=
 by
-  by_cases constantCoeff R f = 0
+  by_cases h : constantCoeff R f = 0
   · suffices : f⁻¹ = 0
     . rw [this, pow_two, zero_mul, neg_zero, zero_mul, map_zero]
     · rwa [MvPowerSeries.inv_eq_zero]
