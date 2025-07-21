@@ -73,11 +73,7 @@ theorem D_fun_C (r : R) : D_fun (C R r) = 0 :=
 by
   ext n
   rw [coeff_D_fun, coeff_C]
-  split_ifs with h
-  · cases succ_ne_zero n h
-  · rw [zero_mul, map_zero]
-  sorry
-  sorry
+  split_ifs with h <;> (try simp; try grind)
 
 theorem trunc_D_fun (f : R⟦X⟧) (n : ℕ) :
   (trunc n f.D_fun : R⟦X⟧) = D_fun ↑(trunc (n + 1) f) :=
