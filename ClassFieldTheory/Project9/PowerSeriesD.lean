@@ -190,16 +190,16 @@ theorem D_comp (f g : R⟦X⟧) (hf : f.hasComp g) (hDf : (D R f).hasComp g) :
   D R (f ∘ᶠ g) = D R f ∘ᶠ g * D R g :=
 by
   ext n
-  obtain ⟨N₁, hN₁⟩ := uniform_stable_of_hasComp _ g hDf n
+  obtain ⟨N₁, hN₁⟩ := uniform_stable_of_hasComp hDf n
   obtain ⟨N₂, hN₂⟩ := hf (n+1)
   set N := max (N₁ + 1) N₂
-  rw [coeff_D, coeff_comp_of_stable _ _ hf (N := N),
+  rw [coeff_D, coeff_comp_of_stable hf (N := N),
     ←coeff_D, D_coe_comp, coeff_mul, coeff_mul, sum_congr rfl]
   intro _ hxy
   congr 1
   rw [D_coe, ←trunc_D']
   symm
-  apply coeff_comp_of_stable _ _ hDf
+  apply coeff_comp_of_stable hDf
   · intro _ hm
     rw [tsub_le_iff_right] at hm
     apply hN₁
