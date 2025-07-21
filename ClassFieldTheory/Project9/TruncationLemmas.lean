@@ -98,7 +98,7 @@ variable {R : Type u} [CommSemiring R]
 
 /-- The function `coeff n : R⟦X⟧ → R` is continuous. I.e. `coeff n f` depends only on a sufficiently
 long truncation of the power series `f`.-/
-theorem coeff_stable (f : R⟦X⟧)  (n m : ℕ) (h : n + 1 ≤ m := by rfl) :
+theorem coeff_stable (f : R⟦X⟧) (n m : ℕ) (h : n + 1 ≤ m := by rfl) :
   coeff R n f = coeff R n (trunc m f : R⟦X⟧) :=
 by
   rwa [Polynomial.coeff_coe, coeff_trunc, if_pos]
