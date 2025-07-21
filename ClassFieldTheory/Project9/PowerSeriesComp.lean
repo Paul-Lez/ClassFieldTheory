@@ -189,15 +189,21 @@ lemma coe_hasComp {f : R[X]} : (f : R⟦X⟧).hasComp g := by
   rw [←succ_le]
   exact hn
 
+variable (f) in
+@[simp]
 lemma zero_hasComp : hasComp 0 f :=
   (Polynomial.coe_zero (R:=R)) ▸ coe_hasComp
 
+variable (f) in
+@[simp]
 lemma one_hasComp : hasComp 1 f :=
   (Polynomial.coe_one (R:=R)) ▸ coe_hasComp
 
 lemma C_hasComp (r : R) : (C R r).hasComp f :=
   (Polynomial.coe_C r) ▸ coe_hasComp
 
+variable (f) in
+@[simp]
 lemma X_hasComp : X.hasComp f :=
   (Polynomial.coe_X (R:=R)) ▸ coe_hasComp
 
@@ -266,9 +272,9 @@ lemma mul_hasComp {f₁ f₂ g : R⟦X⟧} (h₁ : f₁.hasComp g) (h₂ : f₂.
 def hasCompRing (g : R⟦X⟧) : Subsemiring R⟦X⟧ where
   carrier   := fun f ↦ f.hasComp g
   mul_mem'  := mul_hasComp
-  one_mem'  := one_hasComp
+  one_mem'  := one_hasComp _
   add_mem'  := add_hasComp
-  zero_mem' := zero_hasComp
+  zero_mem' := zero_hasComp _
 
 lemma mem_hasCompRing {f g : R⟦X⟧} : f ∈ hasCompRing g ↔ f.hasComp g := by
   rfl
