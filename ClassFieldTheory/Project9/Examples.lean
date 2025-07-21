@@ -5,7 +5,7 @@ Author: Richard M. Hill.
 -/
 
 import Mathlib
-import Formal.PowerSeries_D
+import ClassFieldTheory.Project9.PowerSeriesD
 
 
 -------------------------------------------------------

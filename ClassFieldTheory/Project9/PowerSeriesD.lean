@@ -273,7 +273,7 @@ In the more general case, use `D_inv` or `D_invOf` instead.
 theorem D_inv' {R : Type*} [Field R] (f : R⟦X⟧) :
   D R f⁻¹ = -f⁻¹ ^ 2 * D R f :=
 by
-  by_cases constantCoeff R f = 0
+  by_cases h : constantCoeff R f = 0
   · suffices : f⁻¹ = 0
     . rw [this, pow_two, zero_mul, neg_zero, zero_mul, map_zero]
     · rwa [MvPowerSeries.inv_eq_zero]
