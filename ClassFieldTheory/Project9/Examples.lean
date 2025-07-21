@@ -138,9 +138,8 @@ by
     have : n + 1 ≠ 0 := succ_ne_zero n
     rw [coeff_succ_mul_X, coeff_D, coeff_mk, coeff_one, cast_add, cast_one, IsUnit.div_mul_cancel,
       pow_succ, mul_neg_one, neg_add_cancel, if_neg this]
-    sorry -- rwa [←cast_one, ←cast_add, cast_ne_zero]
-  · sorry -- rw [←cast_one, ←cast_add, cast_ne_zero]
-    --exact succ_ne_zero n
+    apply Ne.isUnit (by norm_cast)
+  · apply Ne.isUnit (by norm_cast)
   · rw [map_add, map_one, constantCoeff_X, add_zero]
     exact one_ne_zero
 
@@ -247,8 +246,9 @@ by
   | zero =>
     rw [coeff_zero_X_mul, coeff_zero_eq_constantCoeff, constantCoeff_polylog_succ]
   | succ n =>
-    rw [coeff_succ_X_mul, polylog, polylog, coeff_mk, coeff_D, coeff_mk, ←cast_succ,
-      succ_eq_add_one, _root_.pow_succ'] --mul_assoc, inv_mul_cancel, mul_one]
-    sorry
-    --rw [cast_ne_zero]
-    --exact succ_ne_zero n
+    simp [polylog]
+    rw [← zpow_neg_coe_of_pos _ (by norm_num)]
+    rw [← zpow_neg_coe_of_pos _ (by norm_num)]
+    nth_rw 2 [← zpow_one ((↑n + 1) : R)]
+    rw [← zpow_add' (by grind)]
+    grind
