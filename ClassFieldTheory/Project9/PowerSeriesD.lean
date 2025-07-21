@@ -148,7 +148,7 @@ theorem D_X : D R (X : R⟦X⟧) = 1 :=
 by
   ext
   rw [coeff_D, coeff_one, coeff_X, boole_mul]
-  simp_rw [add_left_eq_self]
+  simp_rw [add_eq_right]
   split_ifs with h
   · rw [h, cast_zero, zero_add]
   · rfl
