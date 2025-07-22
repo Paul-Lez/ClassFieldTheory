@@ -73,11 +73,7 @@ theorem D_fun_C (r : R) : D_fun (C R r) = 0 :=
 by
   ext n
   rw [coeff_D_fun, coeff_C]
-  split_ifs with h
-  · cases succ_ne_zero n h
-  · rw [zero_mul, map_zero]
-  sorry
-  sorry
+  split_ifs with h <;> (try simp; try grind)
 
 theorem trunc_D_fun (f : R⟦X⟧) (n : ℕ) :
   (trunc n f.D_fun : R⟦X⟧) = D_fun ↑(trunc (n + 1) f) :=
@@ -152,7 +148,7 @@ theorem D_X : D R (X : R⟦X⟧) = 1 :=
 by
   ext
   rw [coeff_D, coeff_one, coeff_X, boole_mul]
-  simp_rw [add_left_eq_self]
+  simp_rw [add_eq_right]
   split_ifs with h
   · rw [h, cast_zero, zero_add]
   · rfl
@@ -194,16 +190,16 @@ theorem D_comp (f g : R⟦X⟧) (hf : f.hasComp g) (hDf : (D R f).hasComp g) :
   D R (f ∘ᶠ g) = D R f ∘ᶠ g * D R g :=
 by
   ext n
-  obtain ⟨N₁, hN₁⟩ := uniform_stable_of_hasComp _ g hDf n
+  obtain ⟨N₁, hN₁⟩ := uniform_stable_of_hasComp hDf n
   obtain ⟨N₂, hN₂⟩ := hf (n+1)
   set N := max (N₁ + 1) N₂
-  rw [coeff_D, coeff_comp_of_stable _ _ hf (N := N),
+  rw [coeff_D, coeff_comp_of_stable hf (N := N),
     ←coeff_D, D_coe_comp, coeff_mul, coeff_mul, sum_congr rfl]
   intro _ hxy
   congr 1
   rw [D_coe, ←trunc_D']
   symm
-  apply coeff_comp_of_stable _ _ hDf
+  apply coeff_comp_of_stable hDf
   · intro _ hm
     rw [tsub_le_iff_right] at hm
     apply hN₁
