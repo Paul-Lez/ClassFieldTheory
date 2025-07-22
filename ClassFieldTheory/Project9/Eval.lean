@@ -50,7 +50,8 @@ variable [CompleteSpace E] {f₁ : F → E} {f₂ : E → F}
   {p₁ : FormalMultilinearSeries 𝕜 F E} {p₂ : FormalMultilinearSeries 𝕜 E F}
   {x : E}
 
--- Here, let `p₁` and `p₂` be `exp` and `log`.
+-- Here, `p₁` and `p₂` should be `exp` and `log`, or `log` and `exp`,
+-- once the API is available
 theorem exists_pos_eqOn_ball_sum_comp_id (hp₁ : 0 < p₁.radius) (hp₂ : 0 < p₂.radius)
     (h : (p₁.comp p₂).sum = id)
     (h₀ : p₂.sum 0 = 0)
@@ -62,94 +63,3 @@ theorem exists_pos_eqOn_ball_sum_comp_id (hp₁ : 0 < p₁.radius) (hp₂ : 0 < 
     rw [h]
     apply h_comp
   exact h
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-#exit
-namespace PowerSeries
-
-noncomputable section
-
-variable {R S : Type*} [CommRing R] [SMul R S]
-  [NormedRing S] [NormMulClass S] [CompleteSpace S]
-
-def eval (f : R⟦X⟧) (a : S) : S := ∑' n, coeff R n f • a ^ n
-#check FormalMultilinearSeries.comp
--- def mySubst (f g : R⟦X⟧) : R⟦X⟧ := f.eval g
-
--- def partSum (f : R⟦X⟧) (a : S) (n : Nat) : S :=
---   ∑ m ∈ Finset.range n, coeff R m f • a ^ n
-
--- def eval (f : R⟦X⟧) (a : S) : S :=
---   (limUnder Filter.atTop (partSum f a))
-
--- theorem tendsto_nhds_eval (f : R⟦X⟧) (a : S) :
---   Filter.Tendsto (f.partSum a) Filter.atTop (nhds (eval f a)) :=
---     CauchySeq.tendsto_limUnder sorry
-
--- #check NormedAddCommGroup.tendsto_atTop
--- #check tendsto_nhds_unique
-
--- variable {R S : Type*} [CommRing R] [NormedCommRing S] [Algebra R S]
-
--- noncomputable def subst' (a : PowerSeries R) (f : R⟦X⟧) : PowerSeries R := f.subst a
-
-theorem eval₂_subst (f g : PowerSeries R) (a : S) :
-    eval (f.subst g) a = f.eval (g.eval a) := by
-  unfold eval
-
-  -- rw [Filter.limUnder_eq_iff sorry]
-  rw??
-
-variable {𝕜 E : Type*} [Field 𝕜] [NormedField E] [Module 𝕜 E] --[ContinuousAdd E]
-  [ContinuousConstSMul 𝕜 E] (p q : FormalMultilinearSeries 𝕜 E E) --(x : E)
-
--- def subst : FormalMultilinearSeries 𝕜 E E :=
---   p.sum fun _ => q
-
-#check FormalMultilinearSeries.sum
-
-#check NormedSpace.exp
-#check PowerSeries.exp
-
-variable [Algebra ℚ E] [IsTopologicalRing E] [CharZero E]
-theorem bla (a : E) : NormedSpace.exp ℚ a = (PowerSeries.exp E).eval a := by
-  unfold eval
-  rw [NormedSpace.exp_eq_tsum]
-  congr! 2 with n
-  simp
-  rw [← Rat.cast_smul_eq_qsmul (R := E)]
-  nth_rw 2 [← Rat.cast_natCast]
-  norm_cast
-
-
-
-#check Rat.cast_natCast
