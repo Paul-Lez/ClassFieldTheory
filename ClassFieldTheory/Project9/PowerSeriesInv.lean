@@ -7,9 +7,9 @@ import Mathlib
 import ClassFieldTheory.Project9.PowerSeriesComp
 
 /-
-In this file we prove, for a commutative ring `R`, that
-a power series `f : R⟦X⟧` is a unit if and only if its constant term
-is a unit.
+In this file we provide, for a commutative ring `R`, the inverse of
+a power series `f : R⟦X⟧`, and we show that `f` is a unit if and only if
+its constant term is a unit.
 
 ## Main result
 
@@ -31,7 +31,7 @@ def geometricSeries (a : R) := mk fun n ↦ a ^ n
 
 variable (a : R)
 
-theorem one_sub_smul_X_mul_geometric_series_eq_one :
+theorem mul_geometricSeries_eq_one :
     ((1: R⟦X⟧) - a • X) * geometricSeries a = 1 := by
   ext n
   rw [sub_mul, map_sub, smul_mul_assoc, map_smul, one_mul, smul_eq_mul, coeff_one]
@@ -39,9 +39,9 @@ theorem one_sub_smul_X_mul_geometric_series_eq_one :
   | zero => simp [geometricSeries]
   | succ n => simp [geometricSeries, pow_succ']
 
-theorem one_add_smul_X_mul_geometric_series_eq_one :
+theorem mul_geometricSeries_neg_eq_one :
     ((1 : R⟦X⟧) + a • X) * geometricSeries (-a) = 1 := by
-  have := one_sub_smul_X_mul_geometric_series_eq_one (-a)
+  have := mul_geometricSeries_eq_one (-a)
   rwa [neg_smul, sub_neg_eq_add] at this
 
 theorem C_unit_add_X_mul_inv_smul_geometricSeries_eq_one (a : Rˣ) :
@@ -49,7 +49,7 @@ theorem C_unit_add_X_mul_inv_smul_geometricSeries_eq_one (a : Rˣ) :
   rw [smul_eq_C_mul, ←mul_assoc, add_mul, ←map_mul,
     Units.inv_eq_val_inv, Units.mul_inv, map_one, mul_comm X,
     ←smul_eq_C_mul]
-  apply one_add_smul_X_mul_geometric_series_eq_one
+  apply mul_geometricSeries_neg_eq_one
 
 theorem isUnit_C_unit_add_X (a : Rˣ) : IsUnit (C R a + X) := by
   apply isUnit_of_mul_eq_one
