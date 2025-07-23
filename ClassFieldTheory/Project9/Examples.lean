@@ -26,6 +26,7 @@ This is because
 
 open PowerSeries
 open Nat hiding pow_zero pow_succ
+noncomputable section
 
 
 local notation "coeff"  => PowerSeries.coeff R
@@ -39,6 +40,28 @@ def logOneAdd       : R⟦X⟧ := mk λ n ↦ -(-1) ^ n / n
 def geometricSeries : R⟦X⟧ := mk λ n ↦ (-1) ^ n
 def polylog (d : ℕ) : R⟦X⟧ := mk λ n ↦ (n⁻¹: R)^d
 
+/- Experiments with `exp(px)`-/
+variable (p : ℕ) [Fact (Nat.Prime p)]
+
+-- This is not the right series.
+def expp : (Padic p)⟦X⟧ := mk λ n ↦ p ^ n / (n !)
+
+lemma pHasEval : HasEval (p : (PadicInt p)) := by
+  rw [show HasEval (p : PadicInt p) =
+    Filter.Tendsto (fun x ↦ (p : PadicInt p) ^ x) Filter.atTop (nhds 0) from rfl]
+  rw [@tendsto_pow_atTop_nhds_zero_iff_norm_lt_one]
+  refine mem_ball_zero_iff.mp ?_
+  simp
+  rw [@inv_lt_one_iff₀]
+  right
+  norm_num
+  obtain this : (Nat.Prime p) := by apply Fact.elim; infer_instance
+  exact Prime.one_lt this
+
+-- See PR #24627
+instance : IsLinearTopology (PadicInt p) (PadicInt p) := sorry
+
+#check PowerSeries.aeval (pHasEval p) (expp p)
 
 theorem geometricSeries_eq : geometricSeries = (1 + X : R⟦X⟧)⁻¹ :=
 by
