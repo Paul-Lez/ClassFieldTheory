@@ -41,13 +41,88 @@ theorem toFormalMultilinearSeries_inj : Function.Injective (toFormalMultilinearS
     from find_name n) h
   exact this
 
-
-theorem toFormalMultilinearSeries_comp (f g : R⟦X⟧) : (f.comp g).toFormalMultilinearSeries A =
-  (f.toFormalMultilinearSeries A).comp (g.toFormalMultilinearSeries A ):= sorry
+-- example : (1 : ℝ → ℝ) = id := by
+--   simp
 
 
 theorem toFormalMultilinearSeries_add (f g : R⟦X⟧) : (f + g).toFormalMultilinearSeries A =
-  (f.toFormalMultilinearSeries A) + (g.toFormalMultilinearSeries A ):= sorry
+    (f.toFormalMultilinearSeries A) + (g.toFormalMultilinearSeries A) := sorry
+
+-- #check FormalMultilinearSeries.compAlongComposition
+
+-- #check Composition
+
+def applyComposition' (p : FormalMultilinearSeries 𝕜 E F) {n : ℕ} (c : Composition n) :
+    (Fin n → E) → Fin c.length → F := fun v i => p (c.blocksFun i) (v ∘ c.embedding i)
+
+theorem test (a b : FormalMultilinearSeries R A A)
+    (c d : ℕ → R)
+    (hf : a = fun n ↦ c n • ContinuousMultilinearMap.mkPiAlgebraFin R n A)
+    (hg : b = fun n ↦ d n • ContinuousMultilinearMap.mkPiAlgebraFin R n A)
+    (n : ℕ) (C : Composition n) (u : Fin n → A) (i : Fin C.length) :
+    a.applyComposition C u i = 1 := by
+  unfold FormalMultilinearSeries.applyComposition
+  rw [hf]
+  simp
+  have : (List.ofFn (u ∘ ⇑(C.embedding i))).prod =  ∏ j, u (C.embedding i j) := by sorry
+  rw [this]
+  sorry
+
+theorem test'' (a b : FormalMultilinearSeries R A A)
+    (c d : ℕ → R)
+    (hf : a = fun n ↦ c n • ContinuousMultilinearMap.mkPiAlgebraFin R n A)
+    (hg : b = fun n ↦ d n • ContinuousMultilinearMap.mkPiAlgebraFin R n A)
+    (n : ℕ) (C : Composition n) (u : Fin n → A) (i : Fin C.length) (z : Fin n → A) (j : Fin C.length):
+      ContinuousMultilinearMap.mkPiAlgebraFin R (C.blocksFun i) A  (z ∘ ⇑(C.embedding i)) =
+        ∏ j, (z ∘ (C.embedding i)) j
+       := by
+  simp
+  sorry
+
+
+
+theorem test' (a b : FormalMultilinearSeries R A A)
+    (c d : ℕ → R)
+    (hf : a = fun n ↦ c n • ContinuousMultilinearMap.mkPiAlgebraFin R n A)
+    (hg : b = fun n ↦ d n • ContinuousMultilinearMap.mkPiAlgebraFin R n A)
+    (n : ℕ) (C : Composition n) (u : Fin n → A) (z):
+    a.compAlongComposition b C z = (c C.length) • (∏ (j : Fin C.length), d (C.blocksFun j) • ∏ k, (z ∘ (C.embedding j)) k) := by
+  rw [FormalMultilinearSeries.compAlongComposition_apply]
+  rw [hf, hg]
+  simp
+  unfold FormalMultilinearSeries.applyComposition
+  have : (List.ofFn fun i ↦
+        ((fun n ↦ d n • ContinuousMultilinearMap.mkPiAlgebraFin R n A) (C.blocksFun i))
+          (z ∘ ⇑(C.embedding i))).prod =
+        ∏ (j : Fin C.length), d (C.blocksFun j) • ContinuousMultilinearMap.mkPiAlgebraFin R
+          (C.blocksFun j) A  (z ∘ ⇑(C.embedding j)):= by sorry
+  rw [this]
+  congr
+  ext x
+  congr
+  simp
+  sorry
+
+
+theorem foo
+    (a b : FormalMultilinearSeries R A A)
+    (c d : ℕ → R)
+    (hf : a = fun n ↦ c n • ContinuousMultilinearMap.mkPiAlgebraFin R n A)
+    (hg : b = fun n ↦ d n • ContinuousMultilinearMap.mkPiAlgebraFin R n A)
+    (n : ℕ) :
+    (a.comp b) n = ContinuousMultilinearMap.mkPiAlgebraFin R n A := by
+  sorry
+
+theorem toFormalMultilinearSeries_comp (f g : R⟦X⟧) (H : f.hasComp g)
+    (hfg : coeff R 0 g = 0) :
+    (f.comp g).toFormalMultilinearSeries A =
+    (f.toFormalMultilinearSeries A).comp (g.toFormalMultilinearSeries A ) := by
+  ext n : 1
+  unfold toFormalMultilinearSeries
+  rw [foo (c := fun n ↦ coeff R n f) (d := fun n ↦ coeff R n g)]
+  letI :  NoZeroSMulDivisors R (ContinuousMultilinearMap R (fun (i : Fin n) ↦ A) A) := inferInstance
+  suffices coeff R n (f.comp g) = (∑ i ≤ n, (coeff R i) f * (coeff R (n - i)) g) by
+    simp [this]
 
 
 -- def MvPowerSeries.toFormalMultilinearSeries [TopologicalSpace R] [IsTopologicalRing R] {σ : Type*} :
