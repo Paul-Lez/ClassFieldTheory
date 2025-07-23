@@ -2,6 +2,7 @@ import Mathlib.Analysis.Normed.Algebra.Exponential
 import Mathlib.Topology.MetricSpace.Ultra.Basic
 import Mathlib.Topology.Algebra.InfiniteSum.Nonarchimedean
 import Mathlib.Topology.MetricSpace.Pseudo.Defs
+import Mathlib.NumberTheory.Ostrowski
 import Mathlib.Tactic
 
 namespace NormedSpace
@@ -249,32 +250,40 @@ end AnyFieldDivisionAlgebra
 
 end Normed
 
-section Ultrametric
+section convergence
 
 variable {𝕂 𝔸 : Type*} [NontriviallyNormedField 𝕂] [NormedDivisionRing 𝔸] [NormedAlgebra 𝕂 𝔸]
   [NonarchimedeanAddGroup 𝔸] [CompleteSpace 𝔸]
 
---NonarchimedeanAddGroup.summable_iff_tendsto_cofinite_zero
-theorem logSeries_div_summable (x : 𝔸) (hx : ‖x‖ < 1) :
-    Summable fun (n : ℕ) => (-(-1) ^ n / n * x ^ n : 𝔸) := by
-  apply NonarchimedeanAddGroup.summable_of_tendsto_cofinite_zero
-  rw [Nat.cofinite_eq_atTop]
-  rw [Metric.tendsto_atTop]
-  intro ε hε
+-- hasSum_coe_mul_geometric_of_norm_lt_one
+theorem logSeries_radius_gt [CharZero 𝕂] (r : NNReal) (hr : r < 1) : r ≤ (logSeries 𝕂 𝔸).radius := by
+  apply FormalMultilinearSeries.le_radius_of_summable_norm
 
-  sorry
+  simp only [logSeries, norm_smul, norm_div, norm_neg, norm_pow, norm_one, one_pow, one_div,
+    norm_mkPiAlgebraFin, mul_one]
+  suffices ∃ (k : ℕ),
+      (fun (n : ℕ) ↦ ‖(n : 𝕂)‖⁻¹) =O[Filter.atTop] (fun (n : ℕ) ↦ (n ^ k : ℝ)) by
+    obtain ⟨k, hk⟩ := this
+    have : Summable fun (n : ℕ) ↦ (n ^ k * r ^ n : ℝ) := by
+      simpa [hr] using summable_pow_mul_geometric_of_norm_lt_one k (r := (r : ℝ))
+    apply summable_of_isBigO_nat this
+    apply Asymptotics.IsBigO.mul hk (Asymptotics.isBigO_refl _ _)
+  let f : AbsoluteValue ℚ ℝ := sorry
+  have hf : f.IsNontrivial := sorry
+  have heq : ∀ (n : ℕ), ‖(n : 𝕂)‖ = f (n : ℚ) := by
+    intro n
+    rw [← Rat.cast_natCast n]
+    sorry
+  simp [heq]
+  rcases Rat.AbsoluteValue.equiv_real_or_padic f hf with h | h
+  · obtain ⟨c, hc₀, hc₁⟩ := h
+    sorry
+  · obtain ⟨p, ⟨hp₀, ⟨c, hc₀, hc₁⟩⟩, _⟩ := h
 
-theorem logSeries_radius_eq_one : 1 ≤ (logSeries 𝕂 𝔸).radius := by
-  apply le_radius_of_tendsto (l :=0)
-  --apply FormalMultilinearSeries.le_radius_of_summable_norm
-  simp only [NNReal.coe_one, one_pow, mul_one]
-
-  --apply NonarchimedeanAddGroup.summable_of_tendsto_cofinite_zero
-
-  sorry
+    sorry
 
 
-end Ultrametric
+end convergence
 
 
 end NormedSpace
