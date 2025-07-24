@@ -2,7 +2,7 @@ import Mathlib.Analysis.Normed.Algebra.Exponential
 import Mathlib.Topology.MetricSpace.Ultra.Basic
 import Mathlib.Topology.Algebra.InfiniteSum.Nonarchimedean
 import Mathlib.Topology.MetricSpace.Pseudo.Defs
-import Mathlib.NumberTheory.Ostrowski
+import Mathlib.NumberTheory.Padics.PadicNumbers
 import Mathlib.Tactic
 
 namespace NormedSpace
@@ -250,40 +250,74 @@ end AnyFieldDivisionAlgebra
 
 end Normed
 
-section convergence
+section LogConvergence
+
+open Filter
 
 variable {𝕂 𝔸 : Type*} [NontriviallyNormedField 𝕂] [NormedDivisionRing 𝔸] [NormedAlgebra 𝕂 𝔸]
-  [NonarchimedeanAddGroup 𝔸] [CompleteSpace 𝔸]
 
 -- hasSum_coe_mul_geometric_of_norm_lt_one
-theorem logSeries_radius_gt [CharZero 𝕂] (r : NNReal) (hr : r < 1) : r ≤ (logSeries 𝕂 𝔸).radius := by
-  apply FormalMultilinearSeries.le_radius_of_summable_norm
 
+
+example (n t: ℝ) (ht : ∀ r < t, r ≤ n) : t ≤ n := forall_lt_imp_le_iff_le_of_dense.mp ht
+
+/--
+`logSeries` has radius of convergence at least `1` whenever the groth of the norm `‖(n : 𝕂)‖⁻¹`
+for `n : ℕ` is at most polynomial.
+
+
+-/
+theorem logSeries_radius_gt_one_of_growth [CharZero 𝕂]
+  (h : ∃ k, (fun (n : ℕ) ↦ ‖(n : 𝕂)‖⁻¹) =O[atTop] fun n ↦ (n : ℝ) ^ k) --(r : NNReal) (hr : r < 1)
+    : 1 ≤ (logSeries 𝕂 𝔸).radius := by
+
+  apply forall_lt_imp_le_iff_le_of_dense.mp
+  intro r hr
+  -- TODO: there should be a subst doing this!
+  have hr₁ : r = r.toNNReal := Eq.symm (ENNReal.coe_toNNReal (LT.lt.ne_top hr))
+  have hr₂ : r.toNNReal < 1 := ENNReal.toNNReal_lt_of_lt_coe hr
+  rw [hr₁]
+
+  apply FormalMultilinearSeries.le_radius_of_summable_norm
   simp only [logSeries, norm_smul, norm_div, norm_neg, norm_pow, norm_one, one_pow, one_div,
     norm_mkPiAlgebraFin, mul_one]
   suffices ∃ (k : ℕ),
       (fun (n : ℕ) ↦ ‖(n : 𝕂)‖⁻¹) =O[Filter.atTop] (fun (n : ℕ) ↦ (n ^ k : ℝ)) by
     obtain ⟨k, hk⟩ := this
-    have : Summable fun (n : ℕ) ↦ (n ^ k * r ^ n : ℝ) := by
-      simpa [hr] using summable_pow_mul_geometric_of_norm_lt_one k (r := (r : ℝ))
+    have : Summable fun (n : ℕ) ↦ (n ^ k * r.toNNReal ^ n : ℝ) := by
+      simpa [hr₂] using summable_pow_mul_geometric_of_norm_lt_one k (r := (r.toNNReal : ℝ))
     apply summable_of_isBigO_nat this
     apply Asymptotics.IsBigO.mul hk (Asymptotics.isBigO_refl _ _)
-  let f : AbsoluteValue ℚ ℝ := sorry
-  have hf : f.IsNontrivial := sorry
-  have heq : ∀ (n : ℕ), ‖(n : 𝕂)‖ = f (n : ℚ) := by
-    intro n
-    rw [← Rat.cast_natCast n]
-    sorry
-  simp [heq]
-  rcases Rat.AbsoluteValue.equiv_real_or_padic f hf with h | h
-  · obtain ⟨c, hc₀, hc₁⟩ := h
-    sorry
-  · obtain ⟨p, ⟨hp₀, ⟨c, hc₀, hc₁⟩⟩, _⟩ := h
+  exact h
 
-    sorry
+end LogConvergence
+
+section padic
+
+variable (p : ℕ) [Fact p.Prime] {𝕂 : Type*} [NontriviallyNormedField 𝕂]
+
+theorem has_correct_growth [NormedAlgebra ℚ_[p] 𝕂] : ∃ k, (fun (n : ℕ) ↦ ‖(n : 𝕂)‖⁻¹) =O[atTop] fun n ↦ (n : ℝ) ^ k := by
+  use 1
+  rw [isBigO_iff]
+  use 1 -- temporarily
+  apply eventually_atTop.mpr _
+  use 1 -- temp?
+  intro n hn
+  simp only [norm_inv, norm_norm, pow_one, Real.norm_natCast, one_mul]
+  rw [← map_natCast (algebraMap ℚ_[p] 𝕂) n, norm_algebraMap']
+  rw [Padic.norm_eq_zpow_neg_valuation]
+  simp only [Padic.valuation_natCast, zpow_neg, zpow_natCast, inv_inv]
+  norm_cast
+  apply Nat.le_of_dvd (lt_of_lt_of_le one_pos hn)
+  apply pow_padicValNat_dvd
+  norm_cast
+  linarith
 
 
-end convergence
+theorem inv_le_norm_self (n : ℕ) : (n : ℝ)⁻¹ ≤ ‖(n : ℚ_[p])‖ := by
+  sorry
+
+end padic
 
 
 end NormedSpace
