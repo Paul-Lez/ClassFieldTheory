@@ -43,6 +43,18 @@ def polylog (d : ℕ) : R⟦X⟧ := mk λ n ↦ (n⁻¹: R)^d
 /- Experiments with `exp(px)`-/
 variable (p : ℕ) [Fact (Nat.Prime p)]
 
+
+#check padicValNat_factorial
+example (n : ℕ) (b : ℕ) (hb : log p n < b) : ‖p ^ n / (n ! : Padic p)‖ ≤ 1 :=
+  calc ‖p ^ n / (n ! : Padic p)‖ = ‖(p ^ n : Padic p)‖ / ‖(n ! : Padic p)‖ := sorry
+    _ = (padicValNat p (p ^ n) : ℝ) / (padicValNat p (n !) : ℝ) := sorry
+    _ = (n : ℝ) / ∑ i ∈ Finset.Ico 1 b, ⌊(n / p ^ i : ℝ)⌋ := sorry
+    _ = 1 / (∑ i ∈ Finset.Ico 1 b, 1 / p ^ i : ℝ) := sorry
+    _ = 1 / ((p ^ (b+1) - p) / (p - 1) : ℝ) := sorry
+    _ = (p - 1) / (p ^ (b+1) - p) := sorry
+    _ ≤ 1 := sorry
+
+
 -- This is not the right series.
 def expp : (Padic p)⟦X⟧ := mk λ n ↦ p ^ n / (n !)
 
@@ -275,3 +287,9 @@ by
     nth_rw 2 [← zpow_one ((↑n + 1) : R)]
     rw [← zpow_add' (by grind)]
     grind
+
+#check HasEval
+#check IsLinearTopology
+#check PowerSeries.hasSum_aeval (R := PadicInt 2) (S := PadicInt 2)
+
+#check MvPowerSeries.eval₂_subst (σ := Unit)
