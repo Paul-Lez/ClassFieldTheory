@@ -40,6 +40,17 @@ variable {𝕂}
 theorem logSeries_apply_eq (x : 𝔸) (n : ℕ) :
     (logSeries 𝕂 𝔸 n fun _ => x) = (-(-1) ^ n / n : 𝕂) • x ^ n := by simp [logSeries]
 
+omit [TopologicalSpace 𝔸] [IsTopologicalRing 𝔸] in
+/-- This form for the `logSeries` coefficient is useful for rewriting. -/
+theorem logSeries_coeff_eq_natSmul_zsmul (x : 𝔸) (n : ℕ) :
+    (-(-1) ^ n / n : 𝕂) • x ^ n = ((n : 𝕂)⁻¹) • ((-(-1) ^ n : ℤ) • x ^ n) := by
+  simp only [div_eq_inv_mul, mul_smul]
+  norm_cast
+
+theorem logSeries_apply_eq_inv (x : 𝔸) (n : ℕ) :
+    (logSeries 𝕂 𝔸 n fun _ => x) = ((n : 𝕂)⁻¹ * -(-1) ^ n) • x ^ n := by
+  simp [logSeries_apply_eq, div_eq_inv_mul]
+
 theorem logSeries_apply_eq' (x : 𝔸) :
     (fun n => logSeries 𝕂 𝔸 n fun _ => x) = fun (n : ℕ) => (-(-1) ^ n / n : 𝕂) • x ^ n :=
   funext (logSeries_apply_eq x)
@@ -47,8 +58,15 @@ theorem logSeries_apply_eq' (x : 𝔸) :
 theorem logSeries_sum_eq (x : 𝔸) : (logSeries 𝕂 𝔸).sum x = ∑' n : ℕ, (-(-1) ^ n / n : 𝕂) • x ^ n :=
   tsum_congr fun n => logSeries_apply_eq x n
 
+theorem logSeries_sum_eq_inv (x : 𝔸) :
+    (logSeries 𝕂 𝔸).sum x = ∑' n : ℕ, ((n : 𝕂)⁻¹ * -(-1) ^ n)• x ^ n :=
+  tsum_congr fun n => logSeries_apply_eq_inv x n
+
 theorem log_eq_tsum : log 𝕂 = fun x : 𝔸 => ∑' n : ℕ, (-(-1) ^ n / n : 𝕂) • x ^ n :=
   funext logSeries_sum_eq
+
+theorem log_eq_tsum_inv : log 𝕂 = fun x : 𝔸 => ∑' n : ℕ, ((n : 𝕂)⁻¹ * -(-1) ^ n) • x ^ n :=
+  funext logSeries_sum_eq_inv
 
 /-- The logonential sum as an `ofScalarsSum`. -/
 theorem log_eq_ofScalarsSum : log 𝕂 = ofScalarsSum (E := 𝔸) fun n ↦ (-(-1) ^ n / n : 𝕂) := by
@@ -77,11 +95,22 @@ theorem log_unop [T2Space 𝔸] (x : 𝔸ᵐᵒᵖ) :
     log 𝕂 (MulOpposite.unop x) = MulOpposite.unop (log 𝕂 x) := by
   simp_rw [log, logSeries_sum_eq, ← MulOpposite.unop_pow, ← MulOpposite.unop_smul, tsum_unop]
 
--- theorem star_log [T2Space 𝔸] [StarRing 𝔸] [ContinuousStar 𝔸] (x : 𝔸) :
---     star (log 𝕂 x) = log 𝕂 (star x) := by
---   simp_rw [log_eq_tsum, ← star_pow, ← star_inv_natCast_smul, ← tsum_star]
+-- TODO: golf
+theorem star_log [T2Space 𝔸] [StarRing 𝔸] [ContinuousStar 𝔸] (x : 𝔸) :
+    star (log 𝕂 x) = log 𝕂 (star x) := by
+  rw [log_eq_tsum]
+  simp only [logSeries_coeff_eq_natSmul_zsmul, tsum_star, star_inv_natCast_smul]
+  congr! 3 with n
+  simp only [star_smul, Int.reduceNeg, neg_smul, star_neg, neg_inj]
+  simp only [Int.reduceNeg, star_trivial, star_pow, zsmul_eq_mul, Int.cast_pow, Int.cast_neg,
+    Int.cast_one]
 
 variable (𝕂)
+
+@[aesop safe apply]
+theorem _root_.IsSelfAdjoint.log [T2Space 𝔸] [StarRing 𝔸] [ContinuousStar 𝔸] {x : 𝔸}
+    (h : IsSelfAdjoint x) : IsSelfAdjoint (log 𝕂 x) :=
+  (star_log x).trans <| h.symm ▸ rfl
 
 theorem _root_.Commute.log_right [T2Space 𝔸] {x y : 𝔸} (h : Commute x y) :
     Commute x (log 𝕂 y) := by
@@ -103,16 +132,16 @@ variable {𝕂 𝔸 : Type*} [Field 𝕂] [DivisionRing 𝔸] [Algebra 𝕂 𝔸
 
 example (k : 𝕂) (x : 𝔸) : k • x = (Algebra.cast k) * x := by exact Algebra.smul_def k x
 
-theorem logSeries_apply_eq_div (x : 𝔸) (n : ℕ) :
+theorem logSeries_apply_eq_mul (x : 𝔸) (n : ℕ) :
     (logSeries 𝕂 𝔸 n fun _ => x) = -(-1) ^ n / n * x ^ n := by
   simp [logSeries_apply_eq, Algebra.smul_def]
 
-theorem logSeries_apply_eq_div' (x : 𝔸) :
+theorem logSeries_apply_eq_mul' (x : 𝔸) :
     (fun n => logSeries 𝕂 𝔸 n fun _ => x) = fun (n : ℕ) => -(-1) ^ n / n * x ^ n :=
-  funext (logSeries_apply_eq_div x)
+  funext (logSeries_apply_eq_mul x)
 
 theorem logSeries_sum_eq_div (x : 𝔸) : (logSeries 𝕂 𝔸).sum x = ∑' n : ℕ, -(-1) ^ n / n * x ^ n :=
-  tsum_congr (logSeries_apply_eq_div x)
+  tsum_congr (logSeries_apply_eq_mul x)
 
 theorem log_eq_tsum_div : log 𝕂 = fun x : 𝔸 => ∑' n : ℕ, -(-1) ^ n / n * x ^ n :=
   funext logSeries_sum_eq_div
@@ -232,7 +261,7 @@ theorem norm_logSeries_div_summable_of_mem_ball (x : 𝔸)
     (hx : x ∈ EMetric.ball (0 : 𝔸) (logSeries 𝕂 𝔸).radius) :
     Summable fun (n : ℕ) => ‖-(-1) ^ n / n * x ^ n‖ := by
   change Summable (norm ∘ _)
-  rw [← logSeries_apply_eq_div' (𝕂 := 𝕂) x]
+  rw [← logSeries_apply_eq_mul' (𝕂 := 𝕂) x]
   exact norm_logSeries_summable_of_mem_ball x hx
 
 theorem logSeries_div_summable_of_mem_ball [CompleteSpace 𝔸] (x : 𝔸)
@@ -243,12 +272,36 @@ theorem logSeries_div_summable_of_mem_ball [CompleteSpace 𝔸] (x : 𝔸)
 theorem logSeries_div_hasSum_log_of_mem_ball [CompleteSpace 𝔸] (x : 𝔸)
     (hx : x ∈ EMetric.ball (0 : 𝔸) (logSeries 𝕂 𝔸).radius) :
     HasSum (fun (n : ℕ) => -(-1) ^ n / n * x ^ n) (log 𝕂 x) := by
-  rw [← logSeries_apply_eq_div' (𝕂 := 𝕂) x]
+  rw [← logSeries_apply_eq_mul' (𝕂 := 𝕂) x]
   exact logSeries_hasSum_log_of_mem_ball x hx
 
 end AnyFieldDivisionAlgebra
 
 end Normed
+
+section ScalarTower
+
+variable (𝕂 𝕂' 𝔸 : Type*) [Field 𝕂] [Field 𝕂'] [Ring 𝔸] [Algebra 𝕂 𝔸] [Algebra 𝕂' 𝔸]
+  [TopologicalSpace 𝔸] [IsTopologicalRing 𝔸]
+
+/-- If a normed ring `𝔸` is a normed algebra over two fields, then they define the same
+`logSeries` on `𝔸`. -/
+theorem logSeries_eq_logSeries (n : ℕ) (x : 𝔸) :
+    (logSeries 𝕂 𝔸 n fun _ => x) = logSeries 𝕂' 𝔸 n fun _ => x := by
+  simp_rw [logSeries_apply_eq, logSeries_coeff_eq_natSmul_zsmul, inv_natCast_smul_eq 𝕂 𝕂']
+
+/-- If a normed ring `𝔸` is a normed algebra over two fields, then they define the same
+logonential function on `𝔸`. -/
+theorem log_eq_log : (log 𝕂 : 𝔸 → 𝔸) = log 𝕂' := by
+  ext x
+  rw [log, log]
+  refine tsum_congr fun n => ?_
+  rw [logSeries_eq_logSeries 𝕂 𝕂' 𝔸 n x]
+
+theorem log_ℝ_ℂ_eq_log_ℂ_ℂ : (log ℝ : ℂ → ℂ) = log ℂ :=
+  log_eq_log ℝ ℂ ℂ
+
+end ScalarTower
 
 section LogConvergence
 
@@ -256,17 +309,8 @@ open Filter
 
 variable {𝕂 𝔸 : Type*} [NontriviallyNormedField 𝕂] [NormedDivisionRing 𝔸] [NormedAlgebra 𝕂 𝔸]
 
--- hasSum_coe_mul_geometric_of_norm_lt_one
-
-
-example (n t: ℝ) (ht : ∀ r < t, r ≤ n) : t ≤ n := forall_lt_imp_le_iff_le_of_dense.mp ht
-
-/--
-`logSeries` has radius of convergence at least `1` whenever the groth of the norm `‖(n : 𝕂)‖⁻¹`
-for `n : ℕ` is at most polynomial.
-
-
--/
+/-- `logSeries` has radius of convergence at least `1` whenever the groth of the norm `‖(n : 𝕂)‖⁻¹`
+for `n : ℕ` is at most polynomial. -/
 theorem logSeries_radius_gt_one_of_growth [CharZero 𝕂]
   (h : ∃ k, (fun (n : ℕ) ↦ ‖(n : 𝕂)‖⁻¹) =O[atTop] fun n ↦ (n : ℝ) ^ k) --(r : NNReal) (hr : r < 1)
     : 1 ≤ (logSeries 𝕂 𝔸).radius := by
