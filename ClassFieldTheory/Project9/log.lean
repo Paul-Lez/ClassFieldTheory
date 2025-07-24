@@ -343,9 +343,9 @@ variable (p : ℕ) [Fact p.Prime] {𝕂 : Type*} [NontriviallyNormedField 𝕂]
 theorem has_correct_growth [NormedAlgebra ℚ_[p] 𝕂] : ∃ k, (fun (n : ℕ) ↦ ‖(n : 𝕂)‖⁻¹) =O[atTop] fun n ↦ (n : ℝ) ^ k := by
   use 1
   rw [isBigO_iff]
-  use 1 -- temporarily
+  use 1
   apply eventually_atTop.mpr _
-  use 1 -- temp?
+  use 1
   intro n hn
   simp only [norm_inv, norm_norm, pow_one, Real.norm_natCast, one_mul]
   rw [← map_natCast (algebraMap ℚ_[p] 𝕂) n, norm_algebraMap']
@@ -357,8 +357,12 @@ theorem has_correct_growth [NormedAlgebra ℚ_[p] 𝕂] : ∃ k, (fun (n : ℕ) 
   norm_cast
   linarith
 
-
-theorem inv_le_norm_self (n : ℕ) : (n : ℝ)⁻¹ ≤ ‖(n : ℚ_[p])‖ := by
+theorem target_is_right_thing [NormedAlgebra ℚ_[p] 𝕂] (x : 𝕂) (hx : ‖x‖ < 1) :
+    ‖log 𝕂 x - 1‖ < 1 := by
+  simp [log_eq_tsum]
+  rw [Summable.tsum_eq_add_tsum_ite _ 0]
+  simp only [pow_zero, Nat.cast_zero, div_zero, mul_one, zero_add]
+  sorry -- something ultrametric something
   sorry
 
 end padic
