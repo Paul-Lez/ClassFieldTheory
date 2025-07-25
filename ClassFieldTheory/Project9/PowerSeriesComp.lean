@@ -144,8 +144,7 @@ variable {f g : R⟦X⟧}
 
 -- TODO: is this necessary?
 private lemma Finite_support_of_hasComp (h : f.hasComp g (R := R)) (d : ℕ) :
-  Set.Finite <| Function.support <| λ n ↦ coeff R n f * coeff R d (g ^ n) :=
-by
+  Set.Finite <| Function.support <| λ n ↦ coeff R n f * coeff R d (g ^ n) := by
   obtain ⟨N,hN⟩ := h d
   apply Set.Finite.subset (s := range N)
   · exact finite_toSet (range N)
@@ -358,20 +357,17 @@ Some lemmas allowing us to calculate compositions.
 -/
 
 theorem comp_eq (h : f.hasComp g (R := R)) :
-  f ∘ᶠ g = mk λ n ↦ coeff R n ((trunc (h n).choose f).eval₂ (C R) g) :=
-by
+  f ∘ᶠ g = mk λ n ↦ coeff R n ((trunc (h n).choose f).eval₂ (C R) g) := by
   rw [comp, dif_pos h]
 
 lemma comp_eq_zero (h : ¬f.hasComp g (R := R)) :
-  f ∘ᶠ g  = 0 :=
-by
+  f ∘ᶠ g  = 0 := by
   rw [comp, dif_neg h]
 
 variable {n : ℕ}
 
 lemma coeff_comp_def (h : f.hasComp g (R := R)) :
-  coeff R n (f ∘ᶠ g) = coeff R n ((trunc (h n).choose f).eval₂ (C R) g) :=
-by
+  coeff R n (f ∘ᶠ g) = coeff R n ((trunc (h n).choose f).eval₂ (C R) g) := by
   rw [comp, dif_pos h, coeff_mk]
 
 lemma coeff_comp_eq_finsum (h : f.hasComp g (R := R)) :
@@ -391,8 +387,7 @@ variable {N M d : ℕ}
 
 private lemma coeff_trunc_eval₂_of_zero
   (hN : ∀ m, N ≤ m → coeff R m f * coeff R n (g^m) = 0) (hM : N ≤ M):
-  coeff R n ((trunc M f).eval₂ (C R) g) = coeff R n ((trunc N f).eval₂ (C R) g) :=
-by
+  coeff R n ((trunc M f).eval₂ (C R) g) = coeff R n ((trunc N f).eval₂ (C R) g) := by
   induction hM with
   | refl => rfl
   | step ih1 ih2 =>
@@ -429,18 +424,15 @@ theorem coe_comp_eq_eval₂ (f : R[X]) : f ∘ᶠ g = f.eval₂ (C R) g := by
   apply coeff_eq_zero_of_natDegree_lt hm
 
 theorem trunc_comp_eq_sum_range :
-  (trunc n f) ∘ᶠ g = ∑ i in range n, C R (coeff R i f) * g ^ i :=
-by
+  (trunc n f) ∘ᶠ g = ∑ i in range n, C R (coeff R i f) * g ^ i := by
   rw [coe_comp_eq_eval₂, eval₂_trunc_eq_sum_range]
 
 theorem coe_comp_eq_sum_range (f : R[X]) :
-  f ∘ᶠ g = ∑ i in range (natDegree f + 1), C R (f.coeff i) * g ^ i :=
-by
+  f ∘ᶠ g = ∑ i in range (natDegree f + 1), C R (f.coeff i) * g ^ i := by
   rw [coe_comp_eq_eval₂, eval₂_eq_sum_range]
 
 theorem coe_comp_hasComp (f : R[X]) (h : R⟦X⟧) (hgh : g.hasComp h (R := R)) :
-  (f ∘ᶠ g).hasComp h :=
-by
+  (f ∘ᶠ g).hasComp h := by
    rw [coe_comp_eq_eval₂, eval₂_eq_sum]
    apply sum_hasComp
    intros
@@ -450,8 +442,7 @@ by
 
 private lemma coeff_comp_of_constantCoeff_eq_zero
   (h : constantCoeff R g = 0 ) :
-  coeff R n (f ∘ᶠ g) = coeff R n ((trunc (n+1) f).eval₂ (C R) g) :=
-by
+  coeff R n (f ∘ᶠ g) = coeff R n ((trunc (n+1) f).eval₂ (C R) g) := by
   apply coeff_comp_eq_coeff_eval₂_of_stable
   apply hasComp_of_constantCoeff_eq_zero
   exact h
@@ -477,8 +468,7 @@ lemma coeff_comp_of_stable (h : f.hasComp g (R := R))
   rw [coeff_comp_eq_coeff_eval₂_of_stable h hN, coe_comp_eq_eval₂]
 
 private lemma coeff_comp_stable (h : f.hasComp g (R := R)) (d : ℕ) :
-  ∃ N, ∀ n, N ≤ n → coeff R d (f ∘ᶠ g) = coeff R d (trunc n f ∘ᶠ g) :=
-by
+  ∃ N, ∀ n, N ≤ n → coeff R d (f ∘ᶠ g) = coeff R d (trunc n f ∘ᶠ g) := by
   use (h d).choose
   intro n hn
   rw [coeff_comp_eq_coeff_eval₂_stable hn, coe_comp_eq_eval₂]
@@ -506,8 +496,7 @@ private lemma trunc_comp_stable (hfg : hasComp f g (R := R)) (d : ℕ) :
   rfl
 
 theorem hasComp_C_constantCoeff {f g : R⟦X⟧} (h : f.hasComp g) :
-  f.hasComp (C R (constantCoeff R g)) :=
-by
+  f.hasComp (C R (constantCoeff R g)) := by
   intro d
   cases d with
   | zero =>
@@ -644,13 +633,11 @@ theorem add_comp (hf : f.hasComp h (R := R)) (hg : g.hasComp h) :
   apply le_max_left
 
 @[simp]
-theorem one_comp {f : R⟦X⟧} : 1 ∘ᶠ f = 1 :=
-by
+theorem one_comp {f : R⟦X⟧} : 1 ∘ᶠ f = 1 := by
   rw [←Polynomial.coe_one, coe_comp_eq_eval₂, eval₂_one, Polynomial.coe_one]
 
 @[simp]
-theorem zero_comp {f : R⟦X⟧} : 0 ∘ᶠ f = 0 :=
-by
+theorem zero_comp {f : R⟦X⟧} : 0 ∘ᶠ f = 0 := by
   rw [←Polynomial.coe_zero, coe_comp_eq_eval₂, eval₂_zero, Polynomial.coe_zero]
 
 /--
@@ -673,8 +660,7 @@ lemma comp_eq_compRinghom (hfg : f.hasComp g (R := R)) :
 
 theorem sum_comp {S : Finset A} {f : A → R⟦X⟧}
   (h : ∀ s : A, s ∈ S → (f s).hasComp g) :
-  (∑ s in S, f s) ∘ᶠ g = ∑ s in S, (f s) ∘ᶠ g :=
-by
+  (∑ s ∈ S, f s) ∘ᶠ g = ∑ s ∈ S, (f s) ∘ᶠ g := by
   /-
   The obvious proof (using `map_sum` and `AddSubgroup.val_finset_sum`)
   turns out to be longer than the induction proof given here.
@@ -693,8 +679,7 @@ by
 
 theorem prod_comp {S : Finset A} {f : A → R⟦X⟧}
   (h : ∀ s : A, s ∈ S → (f s).hasComp g) :
-  (∏ s in S, f s) ∘ᶠ g = ∏ s in S, (f s) ∘ᶠ g :=
-by
+  (∏ s ∈ S, f s) ∘ᶠ g = ∏ s ∈ S, (f s) ∘ᶠ g := by
   induction S using Finset.induction
   case empty =>
     rw [prod_empty, prod_empty, one_comp]
@@ -899,8 +884,7 @@ The second result `inv_comp` should eventually be extended to the case that
 `R` is a commutative ring.-/
 @[simp]
 theorem inv_comp' [Field R] (hf : constantCoeff R f ≠ 0) (hg : constantCoeff R g = 0) :
-  f⁻¹ ∘ᶠ g = (f ∘ᶠ g)⁻¹ :=
-by
+  f⁻¹ ∘ᶠ g = (f ∘ᶠ g)⁻¹ := by
   have : (f⁻¹ ∘ᶠ g) * (f ∘ᶠ g) = 1
   · rw [←mul_comp, PowerSeries.inv_mul_cancel (h := hf), one_comp] <;>
     apply hasComp_of_constantCoeff_eq_zero (hg := hg)
@@ -920,8 +904,7 @@ This is the statement which generalizes to all commutative rings
 -/
 theorem inv_comp [Field R] (hf : IsUnit (constantCoeff R f))
   (hg : IsNilpotent <| constantCoeff R g):
-  f⁻¹ ∘ᶠ g = (f ∘ᶠ g)⁻¹ :=
-by
+  f⁻¹ ∘ᶠ g = (f ∘ᶠ g)⁻¹ := by
   apply inv_comp'
   exact IsUnit.ne_zero hf
   apply IsReduced.eq_zero
