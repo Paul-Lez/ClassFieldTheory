@@ -110,11 +110,8 @@ from the truncations of `f` and `g`.-/
 theorem coeff_mul_stable₂ (f g) (ha : n < a) (hb : n < b) :
   coeff R n (f * g) = coeff R n (trunc a f * trunc b g) :=
 by
-
-
-  --symm
-  --rw [←succ_le] at ha hb
-
+  symm
+  rw [←succ_le] at ha hb
   sorry
   -- rw [coeff_stable, ←trunc_trunc_mul_trunc, trunc_trunc_of_le f ha,
   --   trunc_trunc_of_le g hb, trunc_trunc_mul_trunc, ←coeff_stable]
