@@ -49,7 +49,6 @@ theorem aux (n : ℕ) : ‖(n.factorial : ℚ_[p])‖ ≥ (r p) ^ n := by
   positivity
   exact_mod_cast Nat.factorial_ne_zero n
 
-#check Pi.le_def
 
 theorem expSeries_radius_eq : r p ≤ (expSeries ℚ_[p] 𝕂).radius := by
   apply forall_lt_imp_le_iff_le_of_dense.mp

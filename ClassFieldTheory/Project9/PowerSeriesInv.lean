@@ -43,9 +43,8 @@ by
       coeff_zero_eq_constantCoeff, map_mul, constantCoeff_X,
       zero_mul, mul_zero, sub_zero, if_pos rfl]
   | succ n =>
-    sorry
-    -- rw [geometricSeries, coeff_mk, if_neg n.succ_ne_zero,
-    --   pow_succ, coeff_succ_X_mul, coeff_mk, sub_self]
+    rw [geometricSeries, coeff_mk, if_neg n.succ_ne_zero,
+      pow_succ, coeff_succ_X_mul, coeff_mk, mul_comm, sub_self]
 
 theorem one_add_smul_X_mul_geometric_series_eq_one :
   ((1 : R⟦X⟧) + a • X) * geometricSeries (-a) = 1 :=
@@ -75,30 +74,30 @@ by
 private lemma eq_C_add_X_comp (f : R⟦X⟧) :
   f = (C R (constantCoeff R f) + X) ∘ᶠ (f - C R (constantCoeff R f)) :=
 by
-  sorry
-  -- rw [add_comp, X_comp, C_comp, add_sub_cancel'_right]
-  -- all_goals
-  --   exact hasComp_of_constantCoeff_eq_zero constantCoeff_sub_C_self
+  rw [add_comp, X_comp, C_comp, @add_sub_cancel]
+  all_goals
+    apply hasComp_of_constantCoeff_eq_zero
+    simp
 
 @[simp]
 theorem isUnit_iff (f : R⟦X⟧):
   (IsUnit f) ↔ IsUnit (constantCoeff R f) :=
 by
-  sorry
-  -- constructor
-  -- · intro hf
-  --   obtain ⟨g,hg⟩ := hf
-  --   apply isUnit_of_mul_eq_one (b := constantCoeff R g.inv)
-  --   rw [←hg, ←map_mul, Units.inv_eq_val_inv, Units.mul_inv, map_one]
-  -- · intro hf
-  --   obtain ⟨a,ha⟩ := hf
-  --   obtain ⟨g,hg⟩ := isUnit_C_unit_add_X a
-  --   rw [eq_C_add_X_comp f]
-  --   apply isUnit_of_mul_eq_one (b := g.inv.comp (f - C R (constantCoeff R f)))
-  --   rw [← ha, ←hg, ←mul_comp]
-  --   rw [Units.inv_eq_val_inv, Units.mul_inv, one_comp]
-  --   all_goals
-  --     rw [ha]
-  --     exact hasComp_of_constantCoeff_eq_zero constantCoeff_sub_C_self
+  constructor
+  · intro hf
+    obtain ⟨g,hg⟩ := hf
+    apply isUnit_of_mul_eq_one (b := constantCoeff R g.inv)
+    rw [←hg, ←map_mul, Units.inv_eq_val_inv, Units.mul_inv, map_one]
+  · intro hf
+    obtain ⟨a,ha⟩ := hf
+    obtain ⟨g,hg⟩ := isUnit_C_unit_add_X a
+    rw [eq_C_add_X_comp f]
+    apply isUnit_of_mul_eq_one (b := g.inv.comp (f - C R (constantCoeff R f)))
+    rw [← ha, ←hg, ←mul_comp]
+    rw [Units.inv_eq_val_inv, Units.mul_inv, one_comp]
+    all_goals
+      rw [ha]
+      apply hasComp_of_constantCoeff_eq_zero
+      simp
 
 end PowerSeries

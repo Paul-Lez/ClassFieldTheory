@@ -43,19 +43,41 @@ theorem toFormalMultilinearSeries_inj : Function.Injective (toFormalMultilinearS
 
 
 theorem toFormalMultilinearSeries_comp (f g : R⟦X⟧) : (f.comp g).toFormalMultilinearSeries A =
-  (f.toFormalMultilinearSeries A).comp (g.toFormalMultilinearSeries A ):= sorry
+  (f.toFormalMultilinearSeries A).comp (g.toFormalMultilinearSeries A ):= by
+  unfold toFormalMultilinearSeries
+  ext n ι
+  simp only [ContinuousMultilinearMap.smul_apply]
+  unfold comp
+  split
+  simp only [_root_.mul_eq_zero, coeff_mk, ContinuousMultilinearMap.mkPiAlgebraFin_apply]
+  rw [eval₂_trunc_eq_sum_range]
+  simp only [map_sum, coeff_C_mul]
+  rw[FormalMultilinearSeries.comp]
+  conv => rhs; congr; congr --rw[FormalMultilinearSeries.compAlongComposition]
+  sorry
+  sorry
+
+
+
 
 
 theorem toFormalMultilinearSeries_add (f g : R⟦X⟧) : (f + g).toFormalMultilinearSeries A =
-  (f.toFormalMultilinearSeries A) + (g.toFormalMultilinearSeries A ):= sorry
+  (f.toFormalMultilinearSeries A) + (g.toFormalMultilinearSeries A ):= by
+  unfold toFormalMultilinearSeries
+  ext n ι
+  simp only [FormalMultilinearSeries.add_apply]
+  rw [LinearMap.map_add (coeff R n) f g]
+  rw[add_smul (r:= (coeff R n) f ) (s := (coeff R n) g) (x := ContinuousMultilinearMap.mkPiAlgebraFin R n A)]
+
+
+
 
 
 -- def MvPowerSeries.toFormalMultilinearSeries [TopologicalSpace R] [IsTopologicalRing R] {σ : Type*} :
 --     MvPowerSeries σ R → FormalMultilinearSeries R (σ → R) R := fun f n ↦
 --   f n
 
-
-    #exit
+#exit
 
 
 
