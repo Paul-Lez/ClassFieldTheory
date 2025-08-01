@@ -1,9 +1,9 @@
 import Mathlib
-import ClassFieldTheory.GroupCohomology._4_TateCohomology_def
-import ClassFieldTheory.GroupCohomology._5_TrivialCohomology
-import ClassFieldTheory.GroupCohomology._8_DimensionShift
+import ClassFieldTheory.GroupCohomology._04_TateCohomology_def
+import ClassFieldTheory.GroupCohomology._05_TrivialCohomology
+import ClassFieldTheory.GroupCohomology._08_DimensionShift
 import ClassFieldTheory.GroupCohomology._10_inflationRestriction
-import ClassFieldTheory.GroupCohomology._9_CyclicGroup
+import ClassFieldTheory.GroupCohomology._09_CyclicGroup
 
 /-
 Suppose `G` is a finite group, and there are positive integers `r` and `s`
@@ -82,8 +82,8 @@ instance Rep.dimensionShift.up_trivialCohomology [Finite G] (M : Rep R G) [M.Tri
 instance Rep.dimensionShift.down_trivialCohomology [Finite G] (M : Rep R G) [M.TrivialCohomology] :
     (down.obj M).TrivialCohomology := sorry
 
-instance Rep.TateCohomology_of_trivialCohomology [Finite G] (M : Rep R G) [M.TrivialCohomology] :
-    M.TrivialTateCohomology := sorry
+instance Rep.tateCohomology_of_trivialCohomology [Finite G] (M : Rep R G) [M.TrivialCohomology] :
+    M.TrivialtateCohomology := sorry
 
 instance Rep.trivialHomology_of_trivialCohomology [Finite G] (M : Rep R G) [M.TrivialCohomology] :
     M.TrivialHomology := sorry

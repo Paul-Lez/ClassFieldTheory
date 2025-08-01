@@ -4,6 +4,7 @@ import Mathlib.Topology.Algebra.InfiniteSum.Nonarchimedean
 import Mathlib.Topology.MetricSpace.Pseudo.Defs
 import Mathlib.NumberTheory.Padics.PadicNumbers
 import Mathlib.Tactic
+import Mathlib
 
 namespace NormedSpace
 
@@ -108,7 +109,7 @@ theorem star_log [T2Space 𝔸] [StarRing 𝔸] [ContinuousStar 𝔸] (x : 𝔸)
 variable (𝕂)
 
 @[aesop safe apply]
-theorem _root_.IsSelfAdjoint.log [T2Space 𝔸] [StarRing 𝔸] [ContinuousStar 𝔸] {x : 𝔸}
+theorem _root_.IsSelfAdjoint.log' [T2Space 𝔸] [StarRing 𝔸] [ContinuousStar 𝔸] {x : 𝔸}
     (h : IsSelfAdjoint x) : IsSelfAdjoint (log 𝕂 x) :=
   (star_log x).trans <| h.symm ▸ rfl
 
@@ -340,6 +341,95 @@ section padic
 
 variable (p : ℕ) [Fact p.Prime] {𝕂 : Type*} [NontriviallyNormedField 𝕂]
 
+
+lemma two_le_p : 2 ≤ p := Nat.Prime.two_le (Fact.elim inferInstance)
+
+theorem padic_val_nat_le₁ (n : ℕ) (hn : n ≥ 1) :  (p-1 : ℤ) * padicValNat p n ≤ n-1 := by
+  let k := padicValNat p n
+  have : p^k ≤ n := by apply Nat.le_of_dvd hn; exact pow_padicValNat_dvd
+  apply le_trans (b := (p ^ k - 1 : ℤ))
+  have ineq₁ : (p - 1 : ℤ) * k + 1 ≤ p ^ k := by
+    induction k with
+    | zero => simp
+    | succ k ih =>
+      by_cases hk : k > 1
+      calc
+        (p - 1 : ℤ) * (k + 1) + 1
+          = (p - 1) * k + (p - 1) + 1 := by ring
+        _ ≤ p ^ k + (p - 1) + 1 := by bound
+        _ = p ^ k + p := by ring
+        _ ≤ p^k + p^k := by bound[two_le_p p]
+        _ = 2 * p^k := by ring
+        _ ≤ p * p^k := by bound[two_le_p p]
+        _ = p ^ (k + 1) := by ring
+      simp_all
+      rw[Nat.le_one_iff_eq_zero_or_eq_one] at hk
+      rcases hk with hk | hk
+      bound
+      simp only [hk, Nat.cast_one, Int.reduceAdd, Nat.reduceAdd]
+      rw [sub_one_mul]
+      rw [← Int.sub_nonneg]
+      have : (p : ℤ) ^ 2 - (↑p * 2 - 2 + 1) = (p - 1)^2 := by ring
+      rw[this]
+      positivity
+  bound
+  bound
+
+
+
+
+
+theorem padic_val_nat_le (n : ℕ) (hn : n ≥ 1) : padicValNat p n ≤ (n-1 : ℚ)/(p-1) := by
+  rw [le_div_iff₀ ?_]
+  rw[mul_comm]
+  have : ((p : ℚ) - 1) * (padicValNat p n : ℚ) = (((p - 1 : ℤ) * (padicValNat p n : ℤ)) : ℚ) := by simp
+  rw[this]
+  exact_mod_cast padic_val_nat_le₁ p n hn
+  simp only [sub_pos, Nat.one_lt_cast]
+  bound[two_le_p p]
+
+
+
+theorem norm_log_le [NormedAlgebra ℚ_[p] 𝕂] [IsUltrametricDist 𝕂] (x : 𝕂) (hx : ‖x‖ < p^(-1/(p-1) : ℝ)) : ‖log 𝕂 x‖ ≤ ‖x‖ := by
+  rw[log_eq_tsum_div]
+  simp only
+  apply le_trans
+  apply IsUltrametricDist.norm_tsum_le
+  apply ciSup_le
+  intro n
+  simp only [norm_mul, norm_div, norm_neg, norm_pow, norm_one, one_pow, one_div]
+  rw[← algebraMap.coe_natCast (R := ℚ_[p])]
+  rw [norm_algebraMap' 𝕂 (n : ℚ_[p])]
+  by_cases hn : n = 0
+  · bound
+  · rw [Padic.norm_eq_zpow_neg_valuation (mod_cast hn)]
+    simp only [Padic.valuation_natCast, zpow_neg, zpow_natCast, inv_inv]
+    rw [← ne_eq n 0, ← Nat.one_le_iff_ne_zero] at hn
+    calc ↑p ^ padicValNat p n * ‖x‖ ^ n ≤ p^((n-1 : ℝ)/(p-1)) * ‖x‖ ^ n := by
+          gcongr
+          rw [← Real.rpow_natCast (↑p) (padicValNat p n)]
+          rw [Real.rpow_le_rpow_left_iff ?_]
+          exact_mod_cast padic_val_nat_le p n hn
+          simp
+          bound[two_le_p p]
+      _ = p^((n-1 : ℝ)/(p-1)) * ‖x‖ ^ (n-1) * ‖x‖ := by rw[mul_assoc]; rw [pow_sub_one_mul ?_ ‖x‖]; linarith
+      _ ≤ p^((n-1 : ℝ)/(p-1)) * (p^(-1/(p-1) : ℝ))^(n-1) * ‖x‖ := by bound
+      _ = ‖x‖ := by rw [← Real.rpow_mul_natCast ?_ (-1 / (↑p - 1)) (n - 1)]
+                    rw [←Real.rpow_add ?_]
+                    rw [div_mul_eq_mul_div]
+                    rw [neg_one_mul]
+                    rw [neg_div]
+                    rw [← Nat.cast_pred ?_]
+                    simp only [add_neg_cancel, Real.rpow_zero, one_mul]
+                    linarith
+                    simp only [Nat.cast_pos]
+                    linarith [two_le_p p]
+                    simp only [Nat.cast_nonneg]
+
+
+
+
+
 theorem has_correct_growth [NormedAlgebra ℚ_[p] 𝕂] : ∃ k, (fun (n : ℕ) ↦ ‖(n : 𝕂)‖⁻¹) =O[atTop] fun n ↦ (n : ℝ) ^ k := by
   use 1
   rw [isBigO_iff]
@@ -364,6 +454,8 @@ theorem target_is_right_thing [NormedAlgebra ℚ_[p] 𝕂] (x : 𝕂) (hx : ‖x
   simp only [pow_zero, Nat.cast_zero, div_zero, mul_one, zero_add]
   sorry -- something ultrametric something
   sorry
+
+
 
 end padic
 
