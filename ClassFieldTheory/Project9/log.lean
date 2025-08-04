@@ -367,8 +367,7 @@ theorem padic_val_nat_le₁ (n : ℕ) (hn : n ≥ 1) :  (p-1 : ℤ) * padicValNa
       rcases hk with hk | hk
       bound
       simp only [hk, Nat.cast_one, Int.reduceAdd, Nat.reduceAdd]
-      rw [sub_one_mul]
-      rw [← Int.sub_nonneg]
+      rw [sub_one_mul, ← Int.sub_nonneg]
       have : (p : ℤ) ^ 2 - (↑p * 2 - 2 + 1) = (p - 1)^2 := by ring
       rw[this]
       positivity
@@ -380,8 +379,7 @@ theorem padic_val_nat_le₁ (n : ℕ) (hn : n ≥ 1) :  (p-1 : ℤ) * padicValNa
 
 
 theorem padic_val_nat_le (n : ℕ) (hn : n ≥ 1) : padicValNat p n ≤ (n-1 : ℚ)/(p-1) := by
-  rw [le_div_iff₀ ?_]
-  rw[mul_comm]
+  rw [le_div_iff₀ ?_, mul_comm]
   have : ((p : ℚ) - 1) * (padicValNat p n : ℚ) = (((p - 1 : ℤ) * (padicValNat p n : ℤ)) : ℚ) := by simp
   rw[this]
   exact_mod_cast padic_val_nat_le₁ p n hn
@@ -398,8 +396,7 @@ theorem norm_log_le [NormedAlgebra ℚ_[p] 𝕂] [IsUltrametricDist 𝕂] (x : �
   apply ciSup_le
   intro n
   simp only [norm_mul, norm_div, norm_neg, norm_pow, norm_one, one_pow, one_div]
-  rw[← algebraMap.coe_natCast (R := ℚ_[p])]
-  rw [norm_algebraMap' 𝕂 (n : ℚ_[p])]
+  rw[← algebraMap.coe_natCast (R := ℚ_[p]), norm_algebraMap' 𝕂 (n : ℚ_[p])]
   by_cases hn : n = 0
   · bound
   · rw [Padic.norm_eq_zpow_neg_valuation (mod_cast hn)]
@@ -407,19 +404,14 @@ theorem norm_log_le [NormedAlgebra ℚ_[p] 𝕂] [IsUltrametricDist 𝕂] (x : �
     rw [← ne_eq n 0, ← Nat.one_le_iff_ne_zero] at hn
     calc ↑p ^ padicValNat p n * ‖x‖ ^ n ≤ p^((n-1 : ℝ)/(p-1)) * ‖x‖ ^ n := by
           gcongr
-          rw [← Real.rpow_natCast (↑p) (padicValNat p n)]
-          rw [Real.rpow_le_rpow_left_iff ?_]
+          rw [← Real.rpow_natCast (↑p) (padicValNat p n), Real.rpow_le_rpow_left_iff ?_]
           exact_mod_cast padic_val_nat_le p n hn
           simp
           bound[two_le_p p]
       _ = p^((n-1 : ℝ)/(p-1)) * ‖x‖ ^ (n-1) * ‖x‖ := by rw[mul_assoc]; rw [pow_sub_one_mul ?_ ‖x‖]; linarith
       _ ≤ p^((n-1 : ℝ)/(p-1)) * (p^(-1/(p-1) : ℝ))^(n-1) * ‖x‖ := by bound
       _ = ‖x‖ := by rw [← Real.rpow_mul_natCast ?_ (-1 / (↑p - 1)) (n - 1)]
-                    rw [←Real.rpow_add ?_]
-                    rw [div_mul_eq_mul_div]
-                    rw [neg_one_mul]
-                    rw [neg_div]
-                    rw [← Nat.cast_pred ?_]
+                    rw [←Real.rpow_add ?_, div_mul_eq_mul_div, neg_one_mul, neg_div, ← Nat.cast_pred ?_]
                     simp only [add_neg_cancel, Real.rpow_zero, one_mul]
                     linarith
                     simp only [Nat.cast_pos]
