@@ -339,7 +339,33 @@ end LogConvergence
 
 section padic
 
-variable (p : ℕ) [Fact p.Prime] {𝕂 : Type*} [NontriviallyNormedField 𝕂]
+variable (p : ℕ) [Fact p.Prime] {𝕂 : Type*} [NontriviallyNormedField 𝕂] [NormedAlgebra ℚ_[p] 𝕂]
+
+
+theorem padic_norm_inv_le_nat (n : ℕ) : ‖(n : ℚ_[p])‖⁻¹ ≤ n := by
+  by_cases h : n = 0
+  subst_eqs
+  simp
+  rw[← ne_eq] at h
+  rw [Padic.norm_eq_zpow_neg_valuation]
+  simp only [Padic.valuation_natCast, zpow_neg, zpow_natCast, inv_inv]
+  norm_cast
+  apply Nat.le_of_dvd (lt_of_lt_of_le one_pos ?_)
+  apply pow_padicValNat_dvd
+  exact Nat.one_le_iff_ne_zero.mpr h
+  exact_mod_cast h
+
+
+theorem has_correct_growth [NormedAlgebra ℚ_[p] 𝕂] : ∃ k, (fun (n : ℕ) ↦ ‖(n : 𝕂)‖⁻¹) =O[atTop] fun n ↦ (n : ℝ) ^ k := by
+  use 1
+  rw [isBigO_iff]
+  use 1
+  apply eventually_atTop.mpr _
+  use 1
+  intro n hn
+  simp only [norm_inv, norm_norm, pow_one, Real.norm_natCast, one_mul]
+  rw [← map_natCast (algebraMap ℚ_[p] 𝕂) n, norm_algebraMap']
+  exact padic_norm_inv_le_nat p n
 
 
 lemma two_le_p : 2 ≤ p := Nat.Prime.two_le (Fact.elim inferInstance)
@@ -387,57 +413,141 @@ theorem padic_val_nat_le (n : ℕ) (hn : n ≥ 1) : padicValNat p n ≤ (n-1 : �
   bound[two_le_p p]
 
 
-
-theorem norm_log_le [NormedAlgebra ℚ_[p] 𝕂] [IsUltrametricDist 𝕂] (x : 𝕂) (hx : ‖x‖ < p^(-1/(p-1) : ℝ)) : ‖log 𝕂 x‖ ≤ ‖x‖ := by
-  rw[log_eq_tsum_div]
-  simp only
-  apply le_trans
-  apply IsUltrametricDist.norm_tsum_le
-  apply ciSup_le
-  intro n
-  simp only [norm_mul, norm_div, norm_neg, norm_pow, norm_one, one_pow, one_div]
-  rw[← algebraMap.coe_natCast (R := ℚ_[p]), norm_algebraMap' 𝕂 (n : ℚ_[p])]
-  by_cases hn : n = 0
-  · bound
-  · rw [Padic.norm_eq_zpow_neg_valuation (mod_cast hn)]
-    simp only [Padic.valuation_natCast, zpow_neg, zpow_natCast, inv_inv]
-    rw [← ne_eq n 0, ← Nat.one_le_iff_ne_zero] at hn
-    calc ↑p ^ padicValNat p n * ‖x‖ ^ n ≤ p^((n-1 : ℝ)/(p-1)) * ‖x‖ ^ n := by
-          gcongr
-          rw [← Real.rpow_natCast (↑p) (padicValNat p n), Real.rpow_le_rpow_left_iff ?_]
-          exact_mod_cast padic_val_nat_le p n hn
-          simp
-          bound[two_le_p p]
-      _ = p^((n-1 : ℝ)/(p-1)) * ‖x‖ ^ (n-1) * ‖x‖ := by rw[mul_assoc]; rw [pow_sub_one_mul ?_ ‖x‖]; linarith
-      _ ≤ p^((n-1 : ℝ)/(p-1)) * (p^(-1/(p-1) : ℝ))^(n-1) * ‖x‖ := by bound
-      _ = ‖x‖ := by rw [← Real.rpow_mul_natCast ?_ (-1 / (↑p - 1)) (n - 1)]
-                    rw [←Real.rpow_add ?_, div_mul_eq_mul_div, neg_one_mul, neg_div, ← Nat.cast_pred ?_]
-                    simp only [add_neg_cancel, Real.rpow_zero, one_mul]
-                    linarith
-                    simp only [Nat.cast_pos]
-                    linarith [two_le_p p]
-                    simp only [Nat.cast_nonneg]
-
-
-
-
-
-theorem has_correct_growth [NormedAlgebra ℚ_[p] 𝕂] : ∃ k, (fun (n : ℕ) ↦ ‖(n : 𝕂)‖⁻¹) =O[atTop] fun n ↦ (n : ℝ) ^ k := by
-  use 1
-  rw [isBigO_iff]
-  use 1
-  apply eventually_atTop.mpr _
-  use 1
-  intro n hn
-  simp only [norm_inv, norm_norm, pow_one, Real.norm_natCast, one_mul]
-  rw [← map_natCast (algebraMap ℚ_[p] 𝕂) n, norm_algebraMap']
-  rw [Padic.norm_eq_zpow_neg_valuation]
-  simp only [Padic.valuation_natCast, zpow_neg, zpow_natCast, inv_inv]
+theorem le_padic_norm_nat (n : ℕ) (hn : 1 ≤ n): ‖(n : ℚ_[p])‖ ≥ (p : ℝ)^(-(n-1)/(p-1) : ℝ) := by
+  rw[Padic.norm_eq_zpow_neg_valuation, Padic.valuation_natCast, ← Real.rpow_intCast, Int.cast_neg, neg_div]
+  gcongr
+  bound[two_le_p p]
   norm_cast
-  apply Nat.le_of_dvd (lt_of_lt_of_le one_pos hn)
-  apply pow_padicValNat_dvd
+  exact_mod_cast padic_val_nat_le p n (hn)
   norm_cast
   linarith
+
+
+
+theorem log_leading_term [IsUltrametricDist 𝕂]
+  (n : ℕ) (hn : 2 ≤ n) (x : 𝕂) (hx : ‖x‖ < p^(-1/(p-1) : ℝ)) (hx' : x ≠ 0): ‖(n : 𝕂)‖⁻¹ * ‖x‖ ^ n < ‖x‖ := by
+  rw[← algebraMap.coe_natCast (R := ℚ_[p]), norm_algebraMap' 𝕂 (n : ℚ_[p])]
+  rw [Padic.norm_eq_zpow_neg_valuation (by rw[ne_eq, Nat.cast_eq_zero]; bound)]
+  simp only [Padic.valuation_natCast, zpow_neg, zpow_natCast, inv_inv]
+  --rw [← ne_eq n 0, ← Nat.one_le_iff_ne_zero] at hn
+  calc ↑p ^ padicValNat p n * ‖x‖ ^ n ≤ p^((n-1 : ℝ)/(p-1)) * ‖x‖ ^ n := by
+        gcongr
+        rw [← Real.rpow_natCast (↑p) (padicValNat p n), Real.rpow_le_rpow_left_iff ?_]
+        exact_mod_cast padic_val_nat_le p n (by linarith)
+        simp
+        bound[two_le_p p]
+    _ = p^((n-1 : ℝ)/(p-1)) * ‖x‖ ^ (n-1) * ‖x‖ := by rw[mul_assoc]; rw [pow_sub_one_mul ?_ ‖x‖]; linarith
+    _ < p^((n-1 : ℝ)/(p-1)) * (p^(-1/(p-1) : ℝ))^(n-1) * ‖x‖ := by
+                  gcongr
+                  bound[two_le_p p]
+                  rw [Nat.sub_ne_zero_iff_lt]
+                  linarith
+
+    _ = ‖x‖ := by rw [← Real.rpow_mul_natCast ?_ (-1 / (↑p - 1)) (n - 1)]
+                  rw [←Real.rpow_add ?_, div_mul_eq_mul_div, neg_one_mul, neg_div, ← Nat.cast_pred ?_]
+                  simp only [add_neg_cancel, Real.rpow_zero, one_mul]
+                  linarith
+                  simp only [Nat.cast_pos]
+                  linarith [two_le_p p]
+                  simp only [Nat.cast_nonneg]
+
+
+theorem log_terms_tendsto_zero [NormedAlgebra ℚ_[p] 𝕂] (x : 𝕂) (hx : ‖x‖ < 1):
+  Tendsto (fun (n : ℕ) ↦ ‖(n : 𝕂)‖⁻¹ * ‖x‖ ^ n) atTop (𝓝 0) := by
+  apply tendsto_of_tendsto_of_tendsto_of_le_of_le (g := 0) (h := fun n : ℕ ↦ n * ‖x‖ ^ n)
+  · exact tendsto_const_nhds
+  · apply tendsto_self_mul_const_pow_of_abs_lt_one
+    rw[abs_norm]
+    exact hx
+  · intro n
+    positivity
+  · intro n
+    simp only
+    rw [← map_natCast (algebraMap ℚ_[p] 𝕂) n, norm_algebraMap']
+    bound[padic_norm_inv_le_nat p n]
+
+
+/--This should be moved somewhere else: purely an analysis theorem-/
+theorem exists_of_lt_sSup (a : ℝ) (ha : 0 ≤ a) (s : Set ℝ) (h : a < sSup s) : ∃ x ∈ s, a < x := by
+  by_contra!
+  apply Real.sSup_le at this
+  simp_all only [forall_const]
+  linarith
+
+
+/--This should be moved somewhere else: purely an analysis theorem-/
+theorem Real.iSup_union {β : Type u_1} (f : β → ℝ){s t : Set β} (h : 0 ≤ f):
+    ⨆ x ∈ s ∪ t, f x = (⨆ x ∈ s, f x) ⊔ ⨆ x ∈ t, f x := by
+  by_contra!
+  rw[← lt_or_lt_iff_ne] at this
+  rcases this with h | h
+  rcases (exists_between h) with ⟨a , ⟨ha₁, ha₂⟩⟩
+  simp only [lt_sup_iff] at ha₂
+  rcases ha₂ with ha | ha
+  rw [show ⨆ x ∈ s, f x = sSup (Set.range fun x ↦ ⨆ (_ : x ∈ s), f x) from rfl] at ha
+  apply exists_of_lt_sSup at ha
+  simp only [Set.mem_range, exists_exists_eq_and] at ha
+  sorry
+  sorry
+  sorry
+  sorry
+
+
+theorem Real.iSup_split {β : Type u_1} (f : β → ℝ) (h : 0 ≤ f) (p : β → Prop) :
+    ⨆ i, f i = (⨆ (i) (_ : p i), f i) ⊔ ⨆ (i) (_ : ¬p i), f i := by
+    sorry
+
+
+
+
+
+
+theorem norm_log_le [NormedAlgebra ℚ_[p] 𝕂] [IsUltrametricDist 𝕂] (x : 𝕂) (hx : ‖x‖ < p^(-1/(p-1) : ℝ)) : ‖log 𝕂 x‖ = ‖x‖ := by
+  by_cases h : x = 0
+  subst_eqs
+  simp
+  rw[log_eq_tsum_div]
+  simp only
+  rw[Summable.tsum_eq_add_tsum_ite (b := 0)]
+  rw[Summable.tsum_eq_add_tsum_ite (b := 1)]
+  simp only [pow_zero, Nat.cast_zero, div_zero, mul_one, one_ne_zero, ↓reduceIte, pow_one, neg_neg,
+    Nat.cast_one, ne_eq, not_false_eq_true, div_self, one_mul, zero_add]
+  rw[IsUltrametricDist.norm_add_eq_max_of_norm_ne_norm ?_]
+  have : ‖∑' (n : ℕ), if n = 1 then 0 else if n = 0 then 0 else -(-1) ^ n / ↑n * x ^ n‖ < ‖x‖ := by
+    apply lt_of_le_of_lt
+    apply IsUltrametricDist.norm_tsum_le
+    obtain ⟨N , hN⟩ : ∃ (N : ℕ), ∀ n ≥ N, dist (‖(n : 𝕂)‖⁻¹ * ‖x‖ ^ n) 0 < ‖x‖ / 2 := by
+      apply (Metric.tendsto_atTop (a := 0) (α := ℝ)).mp
+      apply log_terms_tendsto_zero p
+      apply lt_trans hx
+      apply Real.rpow_lt_one_of_one_lt_of_neg
+      norm_cast
+      bound[two_le_p p]
+      apply div_neg_of_neg_of_pos
+      linarith
+      simp only [sub_pos, Nat.one_lt_cast]
+      bound[two_le_p p]
+      rw[← ne_eq, ← norm_pos_iff] at h
+      bound
+    rw[Real.iSup_split (p := fun i : ℕ ↦ i < N)]
+    simp only [not_lt, sup_lt_iff]
+    constructor
+    sorry
+    sorry
+    sorry
+  sorry
+  sorry
+  sorry
+  sorry
+
+
+
+
+
+
+
+
+
 
 theorem target_is_right_thing [NormedAlgebra ℚ_[p] 𝕂] (x : 𝕂) (hx : ‖x‖ < 1) :
     ‖log 𝕂 x - 1‖ < 1 := by
