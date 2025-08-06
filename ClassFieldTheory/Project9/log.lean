@@ -467,42 +467,12 @@ theorem log_terms_tendsto_zero [NormedAlgebra ℚ_[p] 𝕂] (x : 𝕂) (hx : ‖
     bound[padic_norm_inv_le_nat p n]
 
 
-/--This should be moved somewhere else: purely an analysis theorem-/
-theorem exists_of_lt_sSup (a : ℝ) (ha : 0 ≤ a) (s : Set ℝ) (h : a < sSup s) : ∃ x ∈ s, a < x := by
-  by_contra!
-  apply Real.sSup_le at this
-  simp_all only [forall_const]
-  linarith
-
-
-/--This should be moved somewhere else: purely an analysis theorem-/
-theorem Real.iSup_union {β : Type u_1} (f : β → ℝ){s t : Set β} (h : 0 ≤ f):
-    ⨆ x ∈ s ∪ t, f x = (⨆ x ∈ s, f x) ⊔ ⨆ x ∈ t, f x := by
-  by_contra!
-  rw[← lt_or_lt_iff_ne] at this
-  rcases this with h | h
-  rcases (exists_between h) with ⟨a , ⟨ha₁, ha₂⟩⟩
-  simp only [lt_sup_iff] at ha₂
-  rcases ha₂ with ha | ha
-  rw [show ⨆ x ∈ s, f x = sSup (Set.range fun x ↦ ⨆ (_ : x ∈ s), f x) from rfl] at ha
-  apply exists_of_lt_sSup at ha
-  simp only [Set.mem_range, exists_exists_eq_and] at ha
-  sorry
-  sorry
-  sorry
-  sorry
-
-
-theorem Real.iSup_split {β : Type u_1} (f : β → ℝ) (h : 0 ≤ f) (p : β → Prop) :
-    ⨆ i, f i = (⨆ (i) (_ : p i), f i) ⊔ ⨆ (i) (_ : ¬p i), f i := by
-    sorry
+#check csSup_union (α := ℝ)
 
 
 
 
-
-
-theorem norm_log_le [NormedAlgebra ℚ_[p] 𝕂] [IsUltrametricDist 𝕂] (x : 𝕂) (hx : ‖x‖ < p^(-1/(p-1) : ℝ)) : ‖log 𝕂 x‖ = ‖x‖ := by
+theorem norm_log_le [IsUltrametricDist 𝕂] [CompleteSpace 𝕂] [CharZero 𝕂] (x : 𝕂) (hx : ‖x‖ < p^(-1/(p-1) : ℝ)) : ‖log 𝕂 x‖ = ‖x‖ := by
   by_cases h : x = 0
   subst_eqs
   simp
@@ -512,8 +482,8 @@ theorem norm_log_le [NormedAlgebra ℚ_[p] 𝕂] [IsUltrametricDist 𝕂] (x : �
   rw[Summable.tsum_eq_add_tsum_ite (b := 1)]
   simp only [pow_zero, Nat.cast_zero, div_zero, mul_one, one_ne_zero, ↓reduceIte, pow_one, neg_neg,
     Nat.cast_one, ne_eq, not_false_eq_true, div_self, one_mul, zero_add]
-  rw[IsUltrametricDist.norm_add_eq_max_of_norm_ne_norm ?_]
-  have : ‖∑' (n : ℕ), if n = 1 then 0 else if n = 0 then 0 else -(-1) ^ n / ↑n * x ^ n‖ < ‖x‖ := by
+
+  have ineq : ‖∑' (n : ℕ), if n = 1 then 0 else if n = 0 then 0 else -(-1) ^ n / ↑n * x ^ n‖ < ‖x‖ := by
     apply lt_of_le_of_lt
     apply IsUltrametricDist.norm_tsum_le
     obtain ⟨N , hN⟩ : ∃ (N : ℕ), ∀ n ≥ N, dist (‖(n : 𝕂)‖⁻¹ * ‖x‖ ^ n) 0 < ‖x‖ / 2 := by
@@ -529,33 +499,68 @@ theorem norm_log_le [NormedAlgebra ℚ_[p] 𝕂] [IsUltrametricDist 𝕂] (x : �
       bound[two_le_p p]
       rw[← ne_eq, ← norm_pos_iff] at h
       bound
-    rw[Real.iSup_split (p := fun i : ℕ ↦ i < N)]
-    simp only [not_lt, sup_lt_iff]
-    constructor
-    sorry
-    sorry
-    sorry
-  sorry
-  sorry
-  sorry
-  sorry
-
-
-
-
-
-
-
-
-
-
-theorem target_is_right_thing [NormedAlgebra ℚ_[p] 𝕂] (x : 𝕂) (hx : ‖x‖ < 1) :
-    ‖log 𝕂 x - 1‖ < 1 := by
-  simp [log_eq_tsum]
-  rw [Summable.tsum_eq_add_tsum_ite _ 0]
-  simp only [pow_zero, Nat.cast_zero, div_zero, mul_one, zero_add]
-  sorry -- something ultrametric something
-  sorry
+    let UB := Finset.sup' (Finset.range (N + 1)) (by simp) (fun n : ℕ ↦ ‖(n + 2 : 𝕂)‖⁻¹ * ‖x‖ ^ (n + 2))
+    have h₁ : UB < ‖x‖ := by
+      rw[Finset.sup'_lt_iff]
+      intro i hi
+      exact_mod_cast log_leading_term p (i +2) (𝕂 := 𝕂) (by bound) x (by bound) (h)
+    let UB' := max UB (‖x‖/2)
+    have h₂ : UB' < ‖x‖ := by bound[norm_pos_iff.mpr h]
+    apply lt_of_le_of_lt _ h₂
+    refine Real.iSup_le ?_ (by bound)
+    intro i
+    split_ifs with h' h''
+    rw[norm_zero]
+    bound
+    rw[norm_zero]
+    bound
+    by_cases h₃ : i < N+1
+    have h' : 2 ≤ i := by rw[Nat.two_le_iff]; exact ⟨h'', h'⟩
+    --rw [show UB' = max UB (‖x‖ / 2) from rfl]
+    refine le_sup_of_le_left ?_
+    unfold UB
+    have imem : i - 2 ∈ Finset.range (N + 1):= by
+      simp only [Finset.mem_range]
+      exact lt_of_le_of_lt (Nat.sub_le i 2) h₃
+    have : ‖(((i - 2 : ℕ)) + 2 : 𝕂)‖⁻¹ * ‖x‖ ^ ((i - 2) + 2) ≤ (Finset.range (N + 1)).sup' (by simp) (fun n : ℕ ↦ ‖(n + 2 : 𝕂)‖⁻¹ * ‖x‖ ^ (n + 2)) := by
+      apply Finset.le_sup' (f := (fun n : ℕ ↦ ‖(n + 2 : 𝕂)‖⁻¹ * ‖x‖ ^ (n + 2))) (b := i - 2) (s := Finset.range (N + 1))
+      exact imem
+    suffices h₄ : ‖((i - 2 : ℕ) + 2 : 𝕂)‖⁻¹ * ‖x‖ ^ (i - 2 + 2) = ‖-(-1) ^ i / ↑i * x ^ i‖
+    · bound
+    · simp only [norm_mul, norm_div, norm_neg, norm_pow, norm_one, one_pow, one_div]
+      norm_cast
+      rw[Nat.sub_add_cancel h']
+    simp at h₃
+    apply le_sup_of_le_right
+    simp at hN
+    simp
+    apply le_of_lt
+    apply hN i
+    bound
+  rw[IsUltrametricDist.norm_add_eq_max_of_norm_ne_norm ?_]
+  exact max_eq_left_of_lt ineq
+  symm
+  exact ne_of_lt ineq
+  rw[show
+      (fun n : ℕ ↦ if n = 0 then 0 else -(-1) ^ n / ↑n * x ^ n) = (fun n : ℕ ↦ -(-1) ^ n / ↑n * x ^ n)
+      by ext n; simp only [ite_eq_right_iff, zero_eq_mul, div_eq_zero_iff, neg_eq_zero,
+        pow_eq_zero_iff', one_ne_zero, ne_eq, false_and, false_or]; intro hn; subst_eqs; simp]
+  all_goals
+  apply logSeries_div_summable_of_mem_ball (𝕂 := 𝕂)
+  rw [mem_emetric_ball_zero_iff]
+  apply lt_of_lt_of_le _ (logSeries_radius_gt_one_of_growth (has_correct_growth p))
+  rw[← Real.toNNReal_lt_toNNReal_iff_of_nonneg (norm_nonneg x)] at hx
+  simp only [norm_toNNReal] at hx
+  rw[← enorm_lt_coe] at hx
+  apply lt_trans hx
+  simp only [ENNReal.coe_lt_one_iff, Real.toNNReal_lt_one]
+  apply Real.rpow_lt_one_of_one_lt_of_neg
+  simp
+  linarith[two_le_p p]
+  rw [div_lt_iff₀' ?_]
+  simp
+  simp
+  linarith[two_le_p p]
 
 
 
