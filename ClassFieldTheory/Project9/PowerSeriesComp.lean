@@ -660,8 +660,18 @@ noncomputable def compRinghom (g : R⟦X⟧) : hasCompRing g →+* R⟦X⟧ wher
   toFun := λ f ↦ f ∘ᶠ g
   map_zero' := zero_comp
   map_one'  := one_comp
-  map_add'  := λ f₁ f₂ ↦ sorry-- add_comp f₁.prop f₂.prop
-  map_mul'  := λ f₁ f₂ ↦ sorry --mul_comp f₁.prop f₂.prop
+  map_add'  := by
+                  intro x y;
+                  rw[← add_comp]
+                  simp only [Subsemiring.coe_add]
+                  all_goals rw [← mem_hasCompRing]
+                  all_goals simp
+  map_mul'  := by
+                  intro x y;
+                  rw[← mul_comp]
+                  simp only [Subsemiring.coe_mul]
+                  all_goals rw [← mem_hasCompRing]
+                  all_goals simp
 
 lemma compRinghom_def (f : hasCompRing g (R := R)) :
   compRinghom g f = f ∘ᶠ g :=

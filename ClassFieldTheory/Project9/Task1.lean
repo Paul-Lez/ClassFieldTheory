@@ -45,15 +45,33 @@ theorem toFormalMultilinearSeries_inj : Function.Injective (toFormalMultilinearS
 theorem toFormalMultilinearSeries_comp (f g : R⟦X⟧) : (f.comp g).toFormalMultilinearSeries A =
   (f.toFormalMultilinearSeries A).comp (g.toFormalMultilinearSeries A ):= by
   unfold toFormalMultilinearSeries
+  unfold FormalMultilinearSeries.comp
   ext n ι
-  simp only [ContinuousMultilinearMap.smul_apply]
-  unfold comp
-  split
-  simp only [_root_.mul_eq_zero, coeff_mk, ContinuousMultilinearMap.mkPiAlgebraFin_apply]
-  rw [eval₂_trunc_eq_sum_range]
-  simp only [map_sum, coeff_C_mul]
-  rw[FormalMultilinearSeries.comp]
-  conv => rhs; congr; congr --rw[FormalMultilinearSeries.compAlongComposition]
+  rw[coeff_comp_eq_finsum]
+  simp only [ContinuousMultilinearMap.sum_apply, FormalMultilinearSeries.compAlongComposition_apply]
+  simp only [ContinuousMultilinearMap.smul_apply, ContinuousMultilinearMap.mkPiAlgebraFin_apply]
+
+  -- unfold comp
+  -- split_ifs with h
+  -- rw[coeff_mk]
+  -- rw [eval₂_trunc_eq_sum_range g (C R) (h n).choose f]
+
+  -- simp only [_root_.mul_eq_zero, map_sum, coeff_C_mul, ContinuousMultilinearMap.smul_apply,
+  --    ContinuousMultilinearMap.mkPiAlgebraFin_apply, ContinuousMultilinearMap.sum_apply, Finset.sum_smul]
+
+
+  -- ext n ι
+  -- simp only [ContinuousMultilinearMap.smul_apply]
+  -- unfold comp
+  -- split
+  -- simp only [_root_.mul_eq_zero, coeff_mk, ContinuousMultilinearMap.mkPiAlgebraFin_apply]
+  -- rw [eval₂_trunc_eq_sum_range]
+  -- simp only [map_sum, coeff_C_mul]
+  -- rw[FormalMultilinearSeries.comp]
+  -- simp only [ContinuousMultilinearMap.sum_apply, FormalMultilinearSeries.compAlongComposition_apply,
+  --   ContinuousMultilinearMap.smul_apply, ContinuousMultilinearMap.mkPiAlgebraFin_apply]
+  -- rw [Finset.sum_smul]
+
   sorry
   sorry
 
