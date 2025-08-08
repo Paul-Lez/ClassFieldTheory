@@ -22,6 +22,10 @@ noncomputable def PowerSeries.toFormalMultilinearSeries (f : R⟦X⟧)   :
 
 -- #synth DiscreteTopology Prop
 
+lemma prlemma {n : ℕ} (a : Fin n → A) (x : Composition n) :
+    ∏ i, ∏ j, a ((x.embedding i) j) = ∏ i, a i := by
+  simpa [Finset.prod_sigma', Finset.univ_sigma_univ] using x.blocksFinEquiv.prod_comp a
+
 variable (f g : R⟦X⟧)
 
 lemma Finset.singleton_union {α : Type*} [DecidableEq α] (x : α) (s : Finset α) : {x} ∪ s = insert x s := by
