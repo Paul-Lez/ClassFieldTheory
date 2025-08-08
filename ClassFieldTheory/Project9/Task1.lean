@@ -94,6 +94,7 @@ theorem temp {n : ℕ} (F : ℕ → (ℕ →₀ ℕ) → R) (hf : F.support ⊆ 
     rw [←ha, u_def]
 
 
+/-
 theorem subst_formula (h : f.hasComp g) (c : ℕ) : coeff R c (f ∘ᶠ g)
     = ∑ C : Composition c, coeff R (C.length) f * (C.blocks.map fun i ↦ coeff R i g).prod := by
   rw [coeff_comp_eq_finsum (h := h)]
@@ -120,7 +121,76 @@ theorem subst_formula (h : f.hasComp g) (c : ℕ) : coeff R c (f ∘ᶠ g)
   congr
   simp
   all_goals sorry
+-/
 
+set_option maxHeartbeats 400000 in
+theorem subst_formula (h : f.hasComp g) (c : ℕ) (hassump : (constantCoeff R) g = 0) :
+    coeff R c (f ∘ᶠ g) = ∑ C : Composition c, coeff R (C.length) f *
+      (C.blocks.map fun i ↦ coeff R i g).prod := by
+  rw [coeff_comp_eq_finsum (h := h)]
+  have : ∑ᶠ (d : ℕ), (coeff R d) f * (coeff R c) (g ^ d)
+    = ∑ᶠ (d : ℕ), (coeff R d) f * ∑ l ∈ (Finset.range d).finsuppAntidiag c,
+      ∏ i ∈ Finset.range d, (coeff R (l i)) g := by
+    apply finsum_congr
+    intro x
+    congr
+    exact coeff_pow x c g
+  rw [this]; clear this
+  simp_rw [Finset.mul_sum]
+  rw [finsum_eq_finset_sum_of_support_subset (s := Finset.range (c + 1)), Finset.sum_sigma']
+  have myPred : ∀ x ∈ (Finset.range (c + 1)).sigma fun i ↦ (Finset.range i).finsuppAntidiag c,
+      (coeff R x.fst) f * ∏ i ∈ Finset.range x.fst, (coeff R (x.snd i)) g ≠ 0 →
+      ∀ i ∈ Finset.range x.1, 0 < x.2 i := by
+    intro x hx heq
+    contrapose! heq
+    aesop (add safe Finset.prod_eq_zero)
+  rw [← Finset.sum_filter_of_ne myPred]
+  simp
+  symm
+  apply Finset.sum_bij' (fun c hs ↦ ⟨c.length, c.blocks.toFinsupp⟩)
+    (fun f hf ↦ ⟨(List.range f.1).map f.2, by aesop, by aesop⟩)
+  · intro a
+    simp [Composition.ext_iff];
+    apply List.ext_get
+    · simp
+    · aesop
+  · intro f ha
+    simp; ext
+    · simp [Composition.length]
+    · rw [Finset.mem_filter] at ha
+      aesop
+      ext a
+      by_cases ha : a < fst
+      · aesop
+      · aesop
+        suffices hsup : a ∉ snd.support by simp_all
+        by_contra!
+        specialize right_1 this
+        simp_all; grind
+  · intro a ha
+    rw [← prod_univ_fun_getElem a.blocks fun i ↦ (coeff R i) g]
+    aesop (add norm Finset.prod_range)
+  · aesop (add norm [Composition.length, Finset.sum_range, List.toFinsupp_support, Nat.lt_succ_iff])
+  · aesop
+  · simp_all only [Finset.coe_range, Function.support_subset_iff, ne_eq, mem_Iio]
+    intro x a
+    contrapose! a
+    apply Finset.sum_eq_zero
+    intro f a_1
+    simp_all only [Finset.mem_finsuppAntidiag, _root_.mul_eq_zero]
+    obtain ⟨left, right⟩ := a_1
+    right
+    have : ∃ i ∈ Finset.range x, f i = 0 := by
+      by_contra!
+      suffices x ≤ (Finset.range x).sum f by
+        subst left; grind
+      nth_rw 1 [show x = (Finset.range x).sum 1 by simp]
+      apply Finset.sum_le_sum
+      intro i b
+      simp_all only [Finset.mem_range, ne_eq, Pi.one_apply]
+      specialize this i b
+      grind
+    aesop (add safe Finset.prod_eq_zero)
 
 
 theorem find_name' {n : ℕ} : (List.ofFn (1 : Fin n → A)).prod = 1 := by
@@ -156,19 +226,15 @@ theorem toFormalMultilinearSeries_add (f g : R⟦X⟧) : (f + g).toFormalMultili
 
 -- #check FormalMultilinearSeries.compAlongComposition
 
--- #check Composition
-lemma composition_lemma {n : ℕ} (a : Fin n → A) (x : Composition n) :
-    (List.ofFn a).prod = ∏ i, ∏ j, (a ∘ ⇑(x.embedding i)) j := sorry
-
 
 theorem toFormalMultilinearSeries_comp (f g : R⟦X⟧) (H : f.hasComp g)
-    (hfg : coeff R 0 g = 0) :
+    (hfg : (constantCoeff R) g = 0) :
     (f.comp g).toFormalMultilinearSeries A =
     (f.toFormalMultilinearSeries A).comp (g.toFormalMultilinearSeries A ) := by
   ext n : 1
   unfold toFormalMultilinearSeries
   letI :  NoZeroSMulDivisors R (ContinuousMultilinearMap R (fun (i : Fin n) ↦ A) A) := inferInstance
-  rw [subst_formula]
+  rw [subst_formula _ _ _ _ hfg]
   unfold FormalMultilinearSeries.comp
   rw [Finset.sum_smul (s := Finset.univ (α := Composition n)) (x := ContinuousMultilinearMap.mkPiAlgebraFin R n A)]
   apply Finset.sum_congr rfl
@@ -201,10 +267,11 @@ theorem toFormalMultilinearSeries_comp (f g : R⟦X⟧) (H : f.hasComp g)
   congr 1
   · congr 1
     congr
-    have : x.blocks = List.map x.blocksFun  (List.finRange x.length) := sorry
+    have : x.blocks = List.map x.blocksFun  (List.finRange x.length) := by
+      rw [← List.ofFn_eq_map, Composition.ofFn_blocksFun x]
     rw [List.ofFn_eq_map, this, ←Function.comp_apply (f := List.map (fun i ↦ (coeff R i) g)), List.map_comp_map]
     congr
-  · sorry --apply composition_lemma
+  · simp [prod_ofFn, prlemma]
   · exact H
 
     #exit
