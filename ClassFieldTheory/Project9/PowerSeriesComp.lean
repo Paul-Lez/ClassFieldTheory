@@ -372,17 +372,18 @@ lemma coeff_comp_def (h : f.hasComp g (R := R)) :
   rw [comp, dif_pos h, coeff_mk]
 
 lemma coeff_comp_eq_finsum (h : f.hasComp g (R := R)) :
-  coeff R n (f ∘ᶠ g) = ∑ᶠ d : ℕ, coeff R d f * coeff R n (g ^ d)  := by sorry
-  -- rw [coeff_comp_def h, eval₂_trunc_eq_sum_range, map_sum]
-  -- simp_rw [coeff_C_mul]
-  -- symm
-  -- apply finsum_eq_sum_of_support_subset
-  -- intro d hd
-  -- rw [Function.mem_support] at hd
-  -- rw [coe_range, Set.mem_Iio]
-  -- by_contra' h'
-  -- apply hd
-  -- apply (h n).choose_spec _ h'
+  coeff R n (f ∘ᶠ g) = ∑ᶠ d : ℕ, coeff R d f * coeff R n (g ^ d)  := by
+  rw [coeff_comp_def _ _ h, eval₂_trunc_eq_sum_range, map_sum]
+  simp_rw [coeff_C_mul]
+  symm
+  apply finsum_eq_sum_of_support_subset
+  intro d hd
+  rw [Function.mem_support] at hd
+  rw [coe_range, Set.mem_Iio]
+  by_contra h'
+  apply hd
+  apply (h n).choose_spec _
+  grind
 
 variable {N M d : ℕ}
 

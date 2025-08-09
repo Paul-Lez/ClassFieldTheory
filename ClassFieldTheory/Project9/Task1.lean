@@ -44,54 +44,131 @@ theorem List.toFinset_range (x : ℕ) : Finset.range x = (List.range x).toFinset
 
 -- TODO(Paul): some of the hypotheses (e.g. `hf`) here might need to be tweaked for the theorem
 -- to apply below but this shouldn't be a problem.
-theorem temp {n : ℕ} (F : ℕ → (ℕ →₀ ℕ) → R) (hf : F.support ⊆ Finset.Iic n)
-    (hf' : ∀ d, ∀ l ∈ (Finset.range d).finsuppAntidiag n, ∀ j ∈ Finset.range d, l d = 0 → F n l = 0) :
-    ∑ᶠ (d : ℕ), ∑ l ∈ (Finset.range d).finsuppAntidiag n, F d l
-      = ∑ c : Composition n, F c.length c.blocks.toFinsupp := by
-  let S (d : ℕ) := (Finset.range d).finsuppAntidiag n |>.filter fun l ↦ ∀ i ∈ Finset.range d, l i > 0
-  have : (fun d ↦ ∑ l ∈ S d, F d l).support ⊆ Finset.Iic n := by
-    sorry
-  have eq₁ : ∑ᶠ (d : ℕ), ∑ l ∈ (Finset.range d).finsuppAntidiag n, F d l = ∑ᶠ (d : ℕ), ∑ l ∈ S d, F d l := by
-    sorry
-  rw [eq₁, finsum_eq_finset_sum_of_support_subset _ this]
-  -- have (C : Composition n) : ∃ m, C.blocks.toFinset ⊆ Finset.range m := sorry
-  set u : Composition n → ℕ := fun C ↦ C.length with u_def
-  let hu : ∀ C : Composition n, u C ∈ Finset.Iic n := sorry
-  rw [←Finset.sum_fiberwise_of_maps_to (s := Finset.univ (α := Composition n)) (fun C hC ↦ hu C)
-    (f := fun (c : Composition n) ↦ F c.length c.blocks.toFinsupp)]
-  apply Finset.sum_congr rfl
-  intro x hx
-  symm
-  apply Finset.sum_bij (fun (l : Composition n) _ ↦ l.blocks.toFinsupp)
-  intro a ha
-  rw [Finset.mem_filter, Finset.mem_finsuppAntidiag]
-  constructor
-  · constructor
-    · sorry
-    · sorry
-  · sorry
-  · intro a ha b hb hab
-    ext : 1
-    sorry -- Missing lemma about injectivity of convertion from list to finsupp?
-  · intro b hb
-    rw [Finset.mem_filter] at hb
-    use ⟨List.range x |>.map b, ?_, ?_⟩, ?_
+-- theorem temp {n : ℕ} (F : ℕ → (ℕ →₀ ℕ) → R) (hf : F.support ⊆ Finset.Iic n)
+--     (hf' : ∀ d, ∀ l ∈ (Finset.range d).finsuppAntidiag n, ∀ j ∈ Finset.range d, l d = 0 → F n l = 0) :
+--     ∑ᶠ (d : ℕ), ∑ l ∈ (Finset.range d).finsuppAntidiag n, F d l
+--       = ∑ c : Composition n, F c.length c.blocks.toFinsupp := by
+--   let S (d : ℕ) := (Finset.range d).finsuppAntidiag n |>.filter fun l ↦ ∀ i ∈ Finset.range d, l i > 0
+--   have : (fun d ↦ ∑ l ∈ S d, F d l).support ⊆ Finset.Iic n := by
+--     sorry
+--   have eq₁ : ∑ᶠ (d : ℕ), ∑ l ∈ (Finset.range d).finsuppAntidiag n, F d l = ∑ᶠ (d : ℕ), ∑ l ∈ S d, F d l := by
+--     sorry
+--   rw [eq₁, finsum_eq_finset_sum_of_support_subset _ this]
+--   -- have (C : Composition n) : ∃ m, C.blocks.toFinset ⊆ Finset.range m := sorry
+--   set u : Composition n → ℕ := fun C ↦ C.length with u_def
+--   let hu : ∀ C : Composition n, u C ∈ Finset.Iic n := sorry
+--   rw [←Finset.sum_fiberwise_of_maps_to (s := Finset.univ (α := Composition n)) (fun C hC ↦ hu C)
+--     (f := fun (c : Composition n) ↦ F c.length c.blocks.toFinsupp)]
+--   apply Finset.sum_congr rfl
+--   intro x hx
+--   symm
+--   apply Finset.sum_bij (fun (l : Composition n) _ ↦ l.blocks.toFinsupp)
+--   intro a ha
+--   rw [Finset.mem_filter, Finset.mem_finsuppAntidiag]
+--   constructor
+--   · constructor
+--     · sorry
+--     · sorry
+--   · sorry
+--   · intro a ha b hb hab
+--     ext : 1
+--     sorry -- Missing lemma about injectivity of convertion from list to finsupp?
+--   · intro b hb
+--     rw [Finset.mem_filter] at hb
+--     use ⟨List.range x |>.map b, ?_, ?_⟩, ?_
+--     · simp
+--       sorry
+--     · intro i hi
+--       rw [List.mem_map] at hi
+--       obtain ⟨a, ha, ha'⟩ := hi
+--       rw [←ha']
+--       exact hb.right a ha
+--     · rw [Finset.mem_finsuppAntidiag] at hb
+--       rw [← hb.left.left]
+--       rw [←List.sum_toFinset]
+--       rw [List.toFinset_range]
+--       exact List.nodup_range
+--     · simp [u_def, Composition.length]
+--   · intro a ha
+--     simp at ha
+--     rw [←ha, u_def]
+
+@[simp]
+theorem List.filter_nezero_sum (l : List ℕ) : (List.filter (· ≠ 0) l).sum = l.sum := by
+  induction l with
+  | nil => simp
+  | cons x xs h => aesop (add norm [List.filter_cons])
+
+#check Finset.range
+def Composition.ofFinsuppAntidiag (n : ℕ) (c : ℕ →₀ ℕ)
+    (hc : c ∈ Finset.finsuppAntidiag (Finset.range n) n) : Composition n where
+      blocks :=
+        (List.ofFn (fun n : Fin n ↦ c n)).filter (· ≠ 0)
+      blocks_pos := by grind
+      blocks_sum := by
+        rw [List.filter_nezero_sum]
+        rw [sum_ofFn fun n_1 ↦ c ↑n_1]
+        simp at hc
+        rw [Fin.sum_univ_eq_sum_range]
+        nth_rw 2 [← hc.1]
+
+def Composition.ofFinsuppAntidiag_nezero (n d : ℕ) (c : ℕ →₀ ℕ)
+    (hc : c ∈ Finset.finsuppAntidiag (Finset.range d) n)
+    (hc0 : ∀ i : (Finset.range d), 0 < c i) : Composition n where
+      blocks := List.ofFn (fun n : Fin d ↦ c n)
+      blocks_pos := by aesop
+      blocks_sum := by
+        rw [sum_ofFn fun m ↦ c ↑m]
+        simp at hc
+        rw [Fin.sum_univ_eq_sum_range]
+        nth_rw 1 [← hc.1]
+
+/-
+The correspondance is `c : Composition n` and
+`∪ d, (c ∈ finsuppAntidiag (Finset.range d) n) ∧ (∀ i : (Finset.range d), 0 < c i)) `
+-/
+
+open Finset in
+def Composition.asFinsuppAntidiag (n : ℕ) : Composition n ≃ (Finset.range (n + 1)).sigma
+      fun d ↦ {c ∈ (Finset.range d).finsuppAntidiag n | ∀ i ∈ Finset.range d, 0 < c i} where
+  toFun c := {
+    val := ⟨c.length, c.blocks.toFinsupp⟩
+    property := by
+      simp_all only [Finset.mem_range, mem_sigma, mem_filter, mem_finsuppAntidiag]
+      constructor
+      · grind [Composition.length_le]
+      · constructor
+        · constructor
+          · rw [Composition.length, Finset.sum_range]
+            simp
+          · simp [List.toFinsupp_support];
+        · aesop
+  }
+  invFun s :=
+     ⟨(List.range s.1.1).map s.1.2, by aesop, by aesop⟩
+  left_inv x := by
+    simp [Composition.ext_iff];
+    apply List.ext_get
     · simp
-      sorry
-    · intro i hi
-      rw [List.mem_map] at hi
-      obtain ⟨a, ha, ha'⟩ := hi
-      rw [←ha']
-      exact hb.right a ha
-    · rw [Finset.mem_finsuppAntidiag] at hb
-      rw [← hb.left.left]
-      rw [←List.sum_toFinset]
-      rw [List.toFinset_range]
-      exact List.nodup_range
-    · simp [u_def, Composition.length]
-  · intro a ha
-    simp at ha
-    rw [←ha, u_def]
+    · aesop
+  right_inv f := by
+    simp [Subtype.ext_iff]; ext
+    · simp [Composition.length]
+    · simp; ext a;
+      obtain ⟨val, property⟩ := f
+      obtain ⟨d, f⟩ := val
+      simp_all only
+      by_cases ha : a < d
+      · simp_all
+      · simp_all
+        rw [Finset.mem_sigma] at property
+        simp_all
+        obtain ⟨_, ⟨_, h⟩, _⟩ := property
+        suffices haa : a ∉ f.support by simp_all
+        by_contra!
+        obtain hle := h this
+        simp at hle; order
+
 
 
 /-
@@ -221,8 +298,8 @@ theorem toFormalMultilinearSeries_inj : Function.Injective (toFormalMultilinearS
 --   simp
 
 
-theorem toFormalMultilinearSeries_add (f g : R⟦X⟧) : (f + g).toFormalMultilinearSeries A =
-    (f.toFormalMultilinearSeries A) + (g.toFormalMultilinearSeries A) := sorry
+-- theorem toFormalMultilinearSeries_add (f g : R⟦X⟧) : (f + g).toFormalMultilinearSeries A =
+--     (f.toFormalMultilinearSeries A) + (g.toFormalMultilinearSeries A) := sorry
 
 -- #check FormalMultilinearSeries.compAlongComposition
 
@@ -253,15 +330,12 @@ theorem toFormalMultilinearSeries_comp (f g : R⟦X⟧) (H : f.hasComp g)
         (FormalMultilinearSeries.applyComposition
           (fun n ↦ (coeff R n) g • ContinuousMultilinearMap.mkPiAlgebraFin R n A) x a)).prod
     = (List.ofFn fun i ↦ (((coeff R (x.blocksFun i)) g • ContinuousMultilinearMap.mkPiAlgebraFin R (x.blocksFun i) A)
-      (a ∘ (x.embedding i)))).prod := sorry
-
+      (a ∘ (x.embedding i)))).prod := by aesop
   rw [this]
-
   have : (List.ofFn fun i ↦  (((coeff R (x.blocksFun i)) g • ContinuousMultilinearMap.mkPiAlgebraFin R (x.blocksFun i) A)
       (a ∘ (x.embedding i)))).prod =  (List.ofFn fun i ↦ (((coeff R (x.blocksFun i)) g))).prod •
         (List.ofFn fun i ↦ (List.ofFn (a ∘ (x.embedding i))).prod).prod := by
-    sorry
-
+    aesop (add norm [List.prod_ofFn, Algebra.smul_def, Finset.prod_mul_distrib])
   rw [this]
   rw [← mul_smul]
   congr 1
@@ -273,6 +347,8 @@ theorem toFormalMultilinearSeries_comp (f g : R⟦X⟧) (H : f.hasComp g)
     congr
   · simp [prod_ofFn, prlemma]
   · exact H
+
+#print axioms toFormalMultilinearSeries_comp -- yay!
 
     #exit
 
