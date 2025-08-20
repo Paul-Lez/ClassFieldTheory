@@ -112,15 +112,16 @@ theorem coeff_mul_stable₂ (f g) (ha : n < a) (hb : n < b) :
 by
   symm
   rw [←succ_le] at ha hb
-  sorry
-  -- rw [coeff_stable, ←trunc_trunc_mul_trunc, trunc_trunc_of_le f ha,
-  --   trunc_trunc_of_le g hb, trunc_trunc_mul_trunc, ←coeff_stable]
+  rw[coeff_stable (f := f*g) (m := n + 1)]
+  rw[coeff_stable (m := n+1)]
+  rw [←trunc_trunc_mul_trunc]
+  rw[trunc_trunc_of_le (n := n + 1) (m := a) ha (f := f), trunc_trunc_of_le (n := n+1) (m := b) hb (f := g)]
+  rw [← trunc_trunc_mul_trunc f g]
 
 
 theorem coeff_mul_stable (f g) (h : d.succ ≤ n := by rfl) :
   coeff R d (f * g) = coeff R d (trunc n f * trunc n g)
-  := sorry --coeff_mul_stable₂ f g h h
-
+  := by rw[coeff_mul_stable₂]; all_goals exact h
 
 -- theorem natDegree_trunc_lt (f : R⟦X⟧) (n) : (trunc (n + 1) f).natDegree < n + 1 :=
 -- by

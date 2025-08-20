@@ -1,8 +1,8 @@
 import Mathlib
-import ClassFieldTheory.GroupCohomology._5_TrivialCohomology
-import ClassFieldTheory.GroupCohomology._2_restriction
-import ClassFieldTheory.GroupCohomology._6_LeftRegular
-import ClassFieldTheory.GroupCohomology._8_DimensionShift
+import ClassFieldTheory.GroupCohomology._05_TrivialCohomology
+import ClassFieldTheory.GroupCohomology._02_restriction
+import ClassFieldTheory.GroupCohomology._06_LeftRegular
+import ClassFieldTheory.GroupCohomology._08_DimensionShift
 
 
 /-!
@@ -174,7 +174,7 @@ For a finite group, the left regular representation is acyclic.
 -/
 instance _root_.Rep.leftRegular.trivialCohomology [Finite G] [DecidableEq G]:
     (leftRegular R G).TrivialCohomology :=
-  trivialCohomology_of_iso (iso_ind₁' R G)
+  .of_iso (iso_ind₁' R G)
 
 /--
 The connecting homomorphism from `Hⁿ⁺¹(G,R)` to `Hⁿ⁺²(G,aug R G)` is an isomorphism.

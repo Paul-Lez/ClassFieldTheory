@@ -660,8 +660,18 @@ noncomputable def compRinghom (g : R⟦X⟧) : hasCompRing g →+* R⟦X⟧ wher
   toFun := λ f ↦ f ∘ᶠ g
   map_zero' := zero_comp
   map_one'  := one_comp
-  map_add'  := λ f₁ f₂ ↦ sorry-- add_comp f₁.prop f₂.prop
-  map_mul'  := λ f₁ f₂ ↦ sorry --mul_comp f₁.prop f₂.prop
+  map_add'  := by
+                  intro x y;
+                  rw[← add_comp]
+                  simp only [Subsemiring.coe_add]
+                  all_goals rw [← mem_hasCompRing]
+                  all_goals simp
+  map_mul'  := by
+                  intro x y;
+                  rw[← mul_comp]
+                  simp only [Subsemiring.coe_mul]
+                  all_goals rw [← mem_hasCompRing]
+                  all_goals simp
 
 lemma compRinghom_def (f : hasCompRing g (R := R)) :
   compRinghom g f = f ∘ᶠ g :=
@@ -753,27 +763,31 @@ theorem comp_X (f : R⟦X⟧) : f ∘ᶠ X = f := by
 theorem X_comp (f : R⟦X⟧) : X ∘ᶠ f = f := by
   rw [←Polynomial.coe_X, coe_comp_eq_eval₂, Polynomial.eval₂_X]
 
+-- The following proof looks very wrong
 
-theorem IsNilpotent_constantCoeff_comp
-  (hf : IsNilpotent (constantCoeff R f)) (hg : IsNilpotent (constantCoeff R g)) :
-  IsNilpotent (constantCoeff R (f ∘ᶠ g)) := by
-  have hfg : f.hasComp g := hasComp_of_isNilpotent_constantCoeff hg
-  rw [←coeff_zero_eq_constantCoeff_apply, coeff_comp_def hfg,
-    eval₂_trunc_eq_sum_range, map_sum]
-  apply isNilpotent_sum
-  intro i hi
-  rw [coeff_zero_eq_constantCoeff_apply, map_mul]
-  cases i with
-  | zero =>
-    apply Commute.isNilpotent_mul_left
-    apply Commute.all
-    rw [coeff_zero_eq_constantCoeff, constantCoeff_C]
-    exact hf
-  | succ n =>
-    apply Commute.isNilpotent_mul_right
-    apply Commute.all
-    rw [map_pow]
-    exact IsNilpotent.pow_succ n hg
+-- theorem IsNilpotent_constantCoeff_comp
+--   (hf : IsNilpotent (constantCoeff R f)) (hg : IsNilpotent (constantCoeff R g)) :
+--   IsNilpotent (constantCoeff R (f ∘ᶠ g)) := by
+--   have hfg : f.hasComp g := hasComp_of_isNilpotent_constantCoeff hg
+--   rw [←coeff_zero_eq_constantCoeff_apply, coeff_comp_def hfg,
+--     eval₂_trunc_eq_sum_range, map_sum]
+--   apply isNilpotent_sum
+--   intro i hi
+--   rw [coeff_zero_eq_constantCoeff_apply, map_mul]
+--   simp
+
+--   cases i with
+--   | zero =>
+--     apply Commute.isNilpotent_mul_left
+--     apply Commute.all
+
+--     rw [coeff_zero_eq_constantCoeff, constantCoeff_C]
+--     exact hf
+--   | succ n =>
+--     apply Commute.isNilpotent_mul_right
+--     apply Commute.all
+--     rw [map_pow]
+--     exact IsNilpotent.pow_succ n hg
 
 private lemma uniform_bound_of_isNilpotent (hg : IsNilpotent (constantCoeff R g)) (d : ℕ) :
     ∃ N, ∀ f : R⟦X⟧, coeff R d (f ∘ᶠ g) = ∑ n in range N, coeff R n f * coeff R d (g ^ n) := by
